@@ -17,6 +17,7 @@
 - Retrieved the committed `index.html` back from GitHub.
 - Inline JavaScript syntax compilation: **PASS**.
 - Static assertions for canvas, animation loop, dinosaur actors, day/night, rain, pause, and absence of external script/style dependencies: **PASS**.
+- Mocked Canvas runtime smoke test: **PASS** (one frame rendered through a stubbed Canvas API; day/night, rain, and pause handlers exercised).
 - Actual browser/GPU rendering: **NOT RUN**.
 - Samsung UN85TU7000FXZA playback: **NOT TESTED**.
 - 4K, frame rate, and long-duration stability: **NOT VERIFIED**.

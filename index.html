@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#071714">
+<title>Jurassic Terrarium — Living Island Test</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071714;color:#edf5e8;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+#world{position:absolute;inset:0;width:100%;height:100%;display:block}
+#top{position:absolute;left:14px;right:14px;top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;pointer-events:none}
+.tag{border:1px solid #d9efcf45;background:#071713b8;border-radius:999px;padding:8px 12px;font-size:11px;letter-spacing:.07em;backdrop-filter:blur(8px);box-shadow:0 3px 16px #0003}
+#title{font-weight:800;letter-spacing:.16em;color:#e5f1d9}
+#controls{margin-left:auto;display:flex;gap:7px;pointer-events:auto}
+button{font:inherit;color:#edf5e8;background:#0a211bd9;border:1px solid #c9e6c055;border-radius:999px;padding:8px 12px;font-size:11px;cursor:pointer;backdrop-filter:blur(8px)}
+button:focus-visible{outline:2px solid #d5eaa0;outline-offset:2px}button:active{transform:translateY(1px)}
+#bottom{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:#071713bd;border:1px solid #d9efcf38;border-radius:999px;padding:8px 14px;font-size:11px;color:#e0ead9;white-space:nowrap;pointer-events:none}
+#status{position:absolute;right:16px;bottom:16px;font-size:10px;color:#e3eddb9c;pointer-events:none}
+@media(max-width:650px){#top{top:8px;left:8px;right:8px;gap:5px}.tag{font-size:9px;padding:7px 9px}#controls{margin-left:0;flex-wrap:wrap}button{font-size:10px;padding:7px 9px}#bottom{bottom:10px;max-width:94%;white-space:normal;text-align:center;font-size:10px}#status{display:none}}
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="Animated procedural dinosaur island with a Tyrannosaurus, Brachiosaurus and Gallimimus herd"></canvas>
+<header id="top">
+  <div id="title" class="tag">JURASSIC TERRARIUM</div>
+  <div id="clock" class="tag">08:30 · DAY</div>
+  <div id="weather" class="tag">CLEAR SKIES</div>
+  <nav id="controls" aria-label="Terrarium controls">
+    <button id="cycle">Night view</button><button id="storm">Start rain</button><button id="pause">Pause</button>
+  </nav>
+</header>
+<div id="bottom">Ambient island preview · Tap the landscape to change camera angle</div>
+<div id="status">PROCEDURAL TEST BUILD · v0.1.0</div>
+<script>
+(function(){
+"use strict";
+const canvas=document.getElementById("world");
+const ctx=canvas.getContext("2d",{alpha:false});
+if(!ctx){document.getElementById("bottom").textContent="This browser does not support the required 2D canvas.";return;}
+const $=id=>document.getElementById(id);
+let width=0,height=0,scale=1,last=0,elapsed=0,paused=false,isNight=false,isRaining=false,camera=0;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const mix=(a,b,t)=>a+(b-a)*t;
+const seeded=(n)=>{let x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);};
+const clouds=Array.from({length:11},(_,i)=>({x:seeded(i+1)*1.35-.15,y:.10+seeded(i+23)*.22,s:.55+seeded(i+45)*.9,speed:.004+seeded(i+67)*.009}));
+const trees=Array.from({length:115},(_,i)=>({x:seeded(i+101),y:.48+seeded(i+211)*.22,s:.45+seeded(i+307)*.9,kind:seeded(i+401)}));
+const herd=Array.from({length:9},(_,i)=>({x:.32+i*.027,y:.684+seeded(i+501)*.025,phase:seeded(i+601)*6.28,s:.52+seeded(i+701)*.18,dir:i%2?1:-1}));
+const drops=Array.from({length:190},(_,i)=>({x:seeded(i+801),y:seeded(i+901),speed:.5+seeded(i+1001)*.8}));
+const rex={x:.72,phase:0,step:0};
+const brach={x:.19,phase:0,step:0};
+function resize(){scale=Math.min(window.devicePixelRatio||1,1.75);width=innerWidth;height=innerHeight;canvas.width=Math.max(1,Math.floor(width*scale));canvas.height=Math.max(1,Math.floor(height*scale));ctx.setTransform(scale,0,0,scale,0,0);}
+window.addEventListener("resize",resize,{passive:true});resize();
+function path(points,fill){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
+function oval(x,y,rx,ry,fill,rotation){ctx.beginPath();ctx.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),rotation||0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();}
+function line(points,color,thick){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.strokeStyle=color;ctx.lineWidth=thick;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke();}
+function drawSky(){
+ const g=ctx.createLinearGradient(0,0,0,height);
+ if(isNight){g.addColorStop(0,"#071326");g.addColorStop(.57,"#203b46");g.addColorStop(1,"#65745a");}
+ else{g.addColorStop(0,"#4d91b0");g.addColorStop(.48,"#9ab7aa");g.addColorStop(1,"#d0cba6");}
+ ctx.fillStyle=g;ctx.fillRect(0,0,width,height);
+ if(isNight){
+  for(let i=0;i<76;i++){let x=seeded(i+1201)*width,y=seeded(i+1301)*height*.48;oval(x,y,1+(i%3)*.3,1+(i%3)*.3,"#e7eddf");}
+  oval(width*.79,height*.16,19,19,"#d8e3e2");oval(width*.785,height*.153,18,18,"#263d4a");
+ }else{
+  const sun=ctx.createRadialGradient(width*.78,height*.18,4,width*.78,height*.18,70);
+  sun.addColorStop(0,"#fff4cb");sun.addColorStop(.35,"#f6dfa5aa");sun.addColorStop(1,"#f6dfa500");
+  ctx.fillStyle=sun;ctx.fillRect(width*.68,height*.06,width*.2,height*.25);oval(width*.78,height*.18,23,23,"#f8e8b8");
+ }
+ clouds.forEach(cloud=>{
+  cloud.x+=cloud.speed*(paused?0:1);if(cloud.x>1.25)cloud.x=-.25;
+  const x=cloud.x*width,y=cloud.y*height,s=cloud.s;
+  ctx.globalAlpha=isNight?.19:.48;
+  const col=isNight?"#9cabb0":"#e9eee0";
+  oval(x,y,34*s,10*s,col);oval(x+22*s,y-5*s,26*s,13*s,col);oval(x+45*s,y,28*s,10*s,col);
+  ctx.globalAlpha=1;
+ });
+}
+function drawMountains(){
+ const shift=(camera-1)*width*.025;
+ path([[-80,.59*height],[.08*width+shift,.38*height],[.19*width+shift,.53*height],[.36*width+shift,.29*height],[.52*width+shift,.55*height],[.69*width+shift,.34*height],[.85*width+shift,.53*height],[1.05*width,.31*height],[1.1*width,.72*height],[-80,.72*height]],isNight?"#293f43":"#607d73");
+ path([[-60,.65*height],[.12*width,.51*height],[.29*width,.61*height],[.48*width,.45*height],[.66*width,.62*height],[.84*width,.48*height],[1.06*width,.61*height],[1.1*width,height],[-60,height]],isNight?"#1c382e":"#3e6845");
+ // A distant waterfall gives the valley a visual focal point.
+ const wx=width*.57,wy=height*.52;
+ const water=ctx.createLinearGradient(wx,wy,wx+10,wy+height*.22);water.addColorStop(0,"#a8d4d0aa");water.addColorStop(1,"#b9ded000");
+ path([[wx-8,wy],[wx+7,wy-2],[wx+16,wy+height*.2],[wx-2,wy+height*.22]],water);
+}
+function drawWater(){
+ const y=height*.76,g=ctx.createLinearGradient(0,y,0,height);
+ g.addColorStop(0,isNight?"#244c50":"#498d87");g.addColorStop(1,isNight?"#0b2533":"#174e61");
+ ctx.fillStyle=g;ctx.fillRect(0,y,width,height-y);
+ for(let i=0;i<36;i++){
+  const yy=y+height*(.035+(i%9)*.024),x=((i*137+elapsed*9*(i%2?1:-1))%(width+90))-45;
+  line([[x,yy],[x+16+(i%5)*7,yy]],isNight?"#a8c9b566":"#e2eee088",1);
+ }
+}
+function drawTrees(){
+ trees.forEach((tr,i)=>{
+  const x=tr.x*width,y=tr.y*height,s=tr.s*(.6+tr.y),base=isNight?"#183329":(tr.kind>.5?"#244b34":"#315d3d");
+  ctx.fillStyle=isNight?"#132a24":"#594f37";ctx.fillRect(x-2*s,y,4*s,height-y);
+  oval(x,y-9*s,10*s,17*s,base);oval(x-7*s,y-3*s,8*s,12*s,base);oval(x+7*s,y-2*s,8*s,12*s,base);
+  if(i%7===0){oval(x-2*s,y-13*s,4*s,5*s,isNight?"#36533b":"#6c8550");}
+ });
+}
+function drawPark(){
+ // Original visitor-centre-inspired lodge, not a copied film asset.
+ const x=width*.765,y=height*.55;
+ ctx.fillStyle=isNight?"#4b5b4b":"#a99d7a";ctx.fillRect(x,y,width*.145,height*.105);
+ path([[x-15,y+2],[x+width*.0725,y-height*.065],[x+width*.16,y+2]],isNight?"#35453d":"#5c5140");
+ ctx.fillStyle=isNight?"#c4caa1":"#e4d4a0";
+ ctx.fillRect(x+width*.03,y+height*.035,width*.035,height*.065);ctx.fillRect(x+width*.09,y+height*.035,width*.027,height*.065);
+ // Fence line and posts.
+ const fy=height*.715;line([[width*.04,fy],[width*.96,fy]],isNight?"#b2bca0":"#d4d1ad",2);
+ for(let i=0;i<34;i++){const px=width*(.04+i*.028);line([[px,fy-12],[px,fy+13]],isNight?"#a3ae94":"#c7c6a3",2);}
+ // Winding service road and tiny safari vehicle.
+ line([[width*.08,height*.79],[width*.27,height*.745],[width*.47,height*.755],[width*.67,height*.80]],isNight?"#484b42":"#786f59",12);
+ line([[width*.08,height*.79],[width*.27,height*.745],[width*.47,height*.755],[width*.67,height*.80]],"#b9ad8c55",1);
+ const vx=width*.47,vy=height*.739;
+ ctx.fillStyle="#d8cda1";ctx.fillRect(vx,vy,31,13);ctx.fillStyle="#27312b";ctx.fillRect(vx+5,vy-6,15,7);
+ oval(vx+6,vy+14,5,5,"#171d1b");oval(vx+25,vy+14,5,5,"#171d1b");
+}
+function drawDino(x,y,s,type,phase,dir){
+ ctx.save();ctx.translate(x*width,y*height);ctx.scale(s*dir,s);
+ const bob=Math.sin(phase*2)*1.8,walk=Math.sin(phase*3);
+ ctx.translate(0,bob);
+ if(type==="rex"){
+  // Tail first, then torso, neck and skull: layered forms keep the silhouette readable.
+  line([[-16,-2],[-42,-8],[-68,-18+walk*1.5],[-83,-21+walk*1.7]],"#536c48",11);
+  oval(-5,-2,27,18,"#617e50");oval(17,-19,18,13,"#708b59");
+  path([[20,-27],[37,-25],[48,-18],[43,-12],[25,-13],[17,-17]],"#6c8756");
+  path([[42,-18],[57,-17],[48,-12],[37,-13]],"#c9b783");
+  oval(34,-23,2.1,2.1,"#f5d88a");
+  line([[-15,10],[-17+walk*3,27],[-8+walk*4,29]],"#4d6745",7);
+  line([[8,10],[10-walk*3,27],[20-walk*4,29]],"#4d6745",7);
+  line([[15,-5],[22,1],[28,-1]],"#81966a",2.5);
+ }else if(type==="brach"){
+  line([[7,-10],[10,-29],[15,-48],[20,-62]],"#839762",11);
+  oval(-5,0,29,15,"#849966");oval(20,-63,8,6,"#8d9e68");
+  line([[24,-62],[33,-59]],"#8d9e68",4);
+  line([[-28,-3],[-44,-9],[-59,-14]],"#849966",5);
+  line([[-18,8],[-19+walk*2,26]],"#697e50",7);line([[14,8],[15-walk*2,26]],"#697e50",7);
+ }else{
+  line([[-7,-6],[-24,-12],[-39,-17]],"#989d73",5);
+  oval(0,-7,16,10,"#b2b58b");oval(12,-18,7,6,"#c1bf95");
+  path([[17,-20],[26,-16],[17,-14]],"#b2b58b");
+  line([[-7,0],[-9+walk*3,14]],"#757d5d",4.5);line([[8,0],[9-walk*3,14]],"#757d5d",4.5);
+  // Small feathered tail fringe.
+  for(let i=0;i<4;i++)line([[-27-i*3,-12-i*1.3],[-31-i*3,-17-i*1.5]],"#aaa980",1.4);
+ }
+ ctx.restore();
+}
+function drawAnimals(){
+ herd.forEach((a,i)=>{
+  const drift=Math.sin(elapsed*.18+a.phase)*.012;
+  drawDino(a.x+drift,a.y,a.s,"herd",a.phase+elapsed*1.6,a.dir);
+ });
+ const rx=.70+Math.sin(elapsed*.075)*.025;
+ drawDino(rx,.724,1.12,"rex",elapsed*1.7,1);
+ drawDino(.19+Math.sin(elapsed*.055)*.012,.656,1.0,"brach",elapsed*.8,1);
+}
+function drawRain(){
+ if(!isRaining)return;
+ ctx.strokeStyle="#c4dce09a";ctx.lineWidth=1;
+ drops.forEach(p=>{
+  if(!paused){p.y+=p.speed*.009;p.x-=.0018;if(p.y>1.05){p.y=-.05;p.x=seeded(Math.floor(elapsed*30+p.speed*1000));}}
+  line([[p.x*width,p.y*height],[(p.x-.009)*width,(p.y+.027)*height]],"#c4dce077",1);
+ });
+}
+function render(){
+ drawSky();drawMountains();drawWater();drawTrees();drawPark();drawAnimals();drawRain();
+ const mist=ctx.createLinearGradient(0,height*.48,0,height*.84);
+ mist.addColorStop(0,"#d8e4d522");mist.addColorStop(1,"#d8e4d500");
+ ctx.fillStyle=mist;ctx.fillRect(0,height*.48,width,height*.36);
+ const vignette=ctx.createRadialGradient(width*.5,height*.48,height*.12,width*.5,height*.5,Math.max(width,height)*.78);
+ vignette.addColorStop(0,"#00000000");vignette.addColorStop(1,"#06120f66");
+ ctx.fillStyle=vignette;ctx.fillRect(0,0,width,height);
+}
+function tick(now){
+ if(!last)last=now;const dt=Math.min((now-last)/1000,.05);last=now;
+ if(!paused){elapsed+=dt;herd.forEach(a=>a.phase+=dt*1.6);}
+ render();requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+$("cycle").addEventListener("click",()=>{isNight=!isNight;$("cycle").textContent=isNight?"Day view":"Night view";$("clock").textContent=isNight?"23:40 · NIGHT":"08:30 · DAY";});
+$("storm").addEventListener("click",()=>{isRaining=!isRaining;$("storm").textContent=isRaining?"Stop rain":"Start rain";$("weather").textContent=isRaining?"TROPICAL RAIN":"CLEAR SKIES";});
+$("pause").addEventListener("click",()=>{paused=!paused;$("pause").textContent=paused?"Resume":"Pause";});
+canvas.addEventListener("pointerdown",()=>{camera=(camera+1)%3;canvas.style.transform="scale("+(camera===1?"1.018":camera===2?"1.035":"1")+")";});
+window.addEventListener("keydown",e=>{if(e.key===" "){e.preventDefault();$("pause").click();}if(e.key.toLowerCase()==="n")$("cycle").click();if(e.key.toLowerCase()==="r")$("storm").click();});
+})();
+</script>
+</body>
+</html>

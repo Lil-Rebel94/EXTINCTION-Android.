@@ -4,7 +4,7 @@ A code-first, ambient dinosaur-island project. This repository is the working ho
 
 ## v0.5.0 — predator-prey behaviour and GPU-rendered sky
 
-Open **[index.html](./index.html)** in a modern browser. The page is self-contained and uses only the browser's built-in Canvas 2D API. It loads no external libraries, assets, fonts, APIs, or paid services.
+Open **[index.html](./index.html)** in a modern browser. The page is self-contained and uses the browser's built-in Canvas 2D and optional WebGL APIs. It loads no external libraries, assets, fonts, APIs, or paid services.
 
 ### Included in this test
 

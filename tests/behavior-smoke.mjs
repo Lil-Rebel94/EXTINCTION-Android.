@@ -71,6 +71,7 @@ function boot(webglMode, failShader = false) {
     devicePixelRatio: 1,
     addEventListener(type, callback) { handlers.set("window:" + type, callback); }
   };
+  const testSource = source.replace("updateStatus();\nrequestAnimationFrame(tick);", "updateStatus();\nwindow.__terrariumDebug = { herd, rex, brach, updateEcosystem };\nrequestAnimationFrame(tick);");
   const sandbox = {
     window: windowStub,
     document,
@@ -81,9 +82,9 @@ function boot(webglMode, failShader = false) {
     console
   };
 
-  vm.runInNewContext(source, sandbox, { timeout: 2000 });
+  vm.runInNewContext(testSource, sandbox, { timeout: 2000 });
   return {
-    handlers, elements, frameQueue,
+    handlers, elements, frameQueue, debug: windowStub.__terrariumDebug,
     gpuDrawCount: () => gpuDrawCount,
     step(timestamp) {
       const callback = frameQueue.shift();
@@ -129,8 +130,24 @@ assert.equal(shaderFailure.elements.get("graphics").textContent, "CANVAS 2D ONLY
 shaderFailure.step(0);
 assert.equal(shaderFailure.gpuDrawCount(), 0, "shader compilation failure falls back to Canvas 2D");
 
+
+const encounter = boot("webgl2");
+const actors = encounter.debug;
+actors.herd.forEach((actor, index) => { actor.x = 0.22 + index * 0.002; });
+const prey = actors.herd[4];
+prey.x = 0.61;
+actors.rex.x = 0.56;
+actors.rex.mode = "stalk";
+actors.rex.modeTime = 5;
+actors.rex.huntCooldown = 0;
+actors.updateEcosystem(0.016);
+assert.equal(actors.rex.mode, "hunt", "T. rex enters hunt state at close range");
+assert.equal(prey.mode, "flee", "targeted herd animal flees a close predator");
+assert.ok(prey.x < 0.61, "fleeing animal moves away from predator");
+
 console.log("PASS: inline script parses");
 console.log("PASS: WebGL2 and WebGL1 GPU sky passes render; Canvas-only and shader-failure fallbacks are retained");
 console.log("PASS: 30 seconds of mocked animation frames run without runtime errors");
 console.log("PASS: autonomous herd, rex and brach activity states are exposed");
+console.log("PASS: predator stalking escalates to a chase and prey flees");
 console.log("PASS: day/night, rain, pause/resume and camera controls respond");

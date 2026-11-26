@@ -2,13 +2,13 @@
 
 A code-first, ambient dinosaur-island project. This repository is the working home for the Jurassic Terrarium project.
 
-## v0.1.0 — playable visual test
+## v0.2.0 — autonomous ecosystem behaviour
 
 Open **[index.html](./index.html)** in a modern browser. The page is self-contained: it uses only the browser's built-in Canvas 2D API and does not load external libraries, assets, fonts, APIs, or paid services.
 
 ### Included in this test
 - Procedurally drawn island, distant mountains, lagoon, waterfall, mist, clouds, forest, visitor-centre-inspired lodge, perimeter fence, service road, and safari vehicle.
-- Animated stylized Tyrannosaurus, Brachiosaurus, and Gallimimus-like herd.
+- Animated stylized Tyrannosaurus, Brachiosaurus, and Gallimimus-like herd.\n- Deterministic per-animal activity state machines: herd foraging, walking, alert pauses and rest; T. rex patrol, scan and rest; Brachiosaurus browsing, walking and rest.\n- Smooth gait/browse blending, bounded roaming around each animal's home range, and a live behaviour readout.
 - Day/night toggle, tropical-rain toggle, pause/resume, and a small camera-view shift.
 - Responsive canvas sizing and a capped device-pixel ratio for a lighter first-run experience.
 - Keyboard shortcuts: **Space** pauses/resumes, **N** toggles night, **R** toggles rain.
@@ -32,4 +32,4 @@ No build step or server is required.
 - Treat visual quality and TV performance as measured engineering targets, not assumptions.
 
 ## Changelog
-- **v0.1.0** — first repository-hosted, self-contained playable island scene.
+- **v0.1.0** — first repository-hosted, self-contained playable island scene.\n- **v0.2.0** — autonomous activity state machines, bounded roaming, blended poses, live behaviour readout, and a Node-based mocked runtime smoke test.

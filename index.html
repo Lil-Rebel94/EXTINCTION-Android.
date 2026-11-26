@@ -301,10 +301,10 @@ function drawDino3D(x,y,scaleD,phase,dir,mode,gait){
  const projected=[];
  parts.forEach(part=>{
   const [px,py,pz]=part.p,[rx,ry,rz]=part.r,[sx,sy,sz]=part.s;
-  const cr=Math.cos(rx),sr=Math.sin(rx),cy=Math.cos(ry),sy=Math.sin(ry),cz=Math.cos(rz),szn=Math.sin(rz);
+  const cr=Math.cos(rx),sr=Math.sin(rx),cy=Math.cos(ry),sinY=Math.sin(ry),cz=Math.cos(rz),szn=Math.sin(rz);
   const points=dinoSphere.v.map(v=>{
    let X=v[0]*sx,Y=v[1]*sy,Z=v[2]*sz;
-   let yy=Y*cr-Z*sr,zz=Y*sr+Z*cr;X=X*cy+zz*sy;zz=-X*sy+zz*cy;
+   let yy=Y*cr-Z*sr,zz=Y*sr+Z*cr;const oldX=X;X=oldX*cy+zz*sinY;zz=-oldX*sinY+zz*cy;
    const xx=X*cz-yy*szn, y2=X*szn+yy*cz;
    const depth=zz+pz;
    const perspective=1+depth*.002;

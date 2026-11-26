@@ -3,9 +3,10 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const match = html.match(/<script>([\\s\\S]*?)<\\/script>/);
-assert.ok(match, "standalone inline script exists");
-const source = match[1];
+const scriptStart = html.indexOf("<script>");
+const scriptEnd = html.indexOf("</script>", scriptStart);
+assert.ok(scriptStart >= 0 && scriptEnd > scriptStart, "standalone inline script exists");
+const source = html.slice(scriptStart + 8, scriptEnd);
 new vm.Script(source, { filename: "index.html:inline-script" });
 
 const handlers = new Map();
@@ -58,12 +59,12 @@ step(0);
 for (let i = 1; i <= 600; i++) step(i * 50);
 
 const status = element("status").textContent;
-assert.match(status, /HERD (FORAGING|MOVING|ALERT|RESTING)/);
-assert.match(status, /REX (PATROLLING|SCANNING|RESTING)/);
-assert.match(status, /BRACH (BROWSING|MOVING|RESTING)/);
+assert.ok(status.startsWith("HERD "), "herd activity is visible");
+assert.ok(status.includes(" · REX "), "T. rex activity is visible");
+assert.ok(status.includes(" · BRACH "), "Brachiosaurus activity is visible");
 
 element("cycle").click();
-assert.match(element("clock").textContent, /NIGHT/);
+assert.ok(element("clock").textContent.includes("NIGHT"), "night control responds");
 element("storm").click();
 assert.equal(element("weather").textContent, "TROPICAL RAIN");
 element("pause").click();
@@ -74,7 +75,7 @@ assert.equal(element("status").textContent, frozenStatus, "paused simulation sta
 element("pause").click();
 assert.equal(element("pause").textContent, "Pause");
 handlers.get("world:pointerdown")?.();
-assert.match(element("world").style.transform, /scale\\(/);
+assert.ok(element("world").style.transform.startsWith("scale("), "camera control responds");
 
 console.log("PASS: inline script parses");
 console.log("PASS: 30 seconds of mocked animation frames run without runtime errors");

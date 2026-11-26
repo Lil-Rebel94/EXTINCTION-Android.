@@ -2,7 +2,7 @@
 
 A code-first, ambient dinosaur-island project. This repository is the working home for Jurassic Terrarium.
 
-## v0.3.0 — autonomous behaviour and GPU capability probe
+## v0.4.0 — autonomous behaviour and first GPU-rendered pass
 
 Open **[index.html](./index.html)** in a modern browser. The page is self-contained and uses only the browser's built-in Canvas 2D API. It loads no external libraries, assets, fonts, APIs, or paid services.
 
@@ -12,7 +12,7 @@ Open **[index.html](./index.html)** in a modern browser. The page is self-contai
 - Animated stylized Tyrannosaurus, Brachiosaurus, and Gallimimus-like herd.
 - Deterministic per-animal activity state machines: herd foraging, walking, alert pauses and rest; T. rex patrol, scan and rest; Brachiosaurus browsing, walking and rest.
 - Smooth gait/browse blending, bounded roaming around each animal's home range, and a live behaviour readout.
-- Runtime WebGL2 → WebGL1 capability probe on a temporary canvas. The current scene deliberately remains on Canvas 2D; the badge reports capability, not an active 3D renderer.
+- Optional WebGL2/WebGL1 shader-rendered sky gradient, composited into the Canvas 2D scene; shader setup failures retain the Canvas 2D fallback.
 - Day/night toggle, tropical-rain toggle, pause/resume, camera-view shift, and keyboard shortcuts (**Space**, **N**, **R**).
 - Responsive canvas sizing and a capped device-pixel ratio for a lighter first-run experience.
 
@@ -36,7 +36,7 @@ The test checks inline-script parsing, WebGL2/WebGL1/Canvas-only probe paths, an
 
 ### Important limits
 
-This is an **early playable visual prototype**, not the promised photorealistic terrarium. Dinosaur bodies are simplified procedural silhouettes, not finished anatomical meshes or rigs. The animals now have deterministic ambient activity states and bounded roaming, but feeding, hunting, herd-level social interactions, territory, persistent state, and sound are not implemented. The current renderer is Canvas 2D, deliberately chosen as a no-dependency compatibility baseline; it is not evidence of WebGL2 support or TV compatibility.
+This is an **early playable visual prototype**, not the promised photorealistic terrarium. Dinosaur bodies are simplified procedural silhouettes, not finished anatomical meshes or rigs. The animals now have deterministic ambient activity states and bounded roaming, but feeding, hunting, herd-level social interactions, territory, persistent state, and sound are not implemented. The scene remains a hybrid renderer: the sky gradient uses an optional WebGL2/WebGL1 shader pass, while landscape, structures, weather, and dinosaur silhouettes remain Canvas 2D. This is not a 3D dinosaur renderer or evidence of TV compatibility.
 
 The Samsung UN85TU7000FXZA browser has **not** been tested. Samsung's published 2020 TV web-engine baseline is Tizen 5.5 / Chromium M69; its documentation lists WebGL generally but does not establish WebGL2 for this target. Samsung's general specification lists 1920×1080 application resolution even on 4K models. See [TV compatibility notes](./docs/TV_COMPATIBILITY.md). Actual resolution, frame rate, remote-control navigation, sleep/wake behaviour, and long-duration stability remain unverified. Do not treat this prototype as a 4K/60–120 FPS or TV-validated build.
 
@@ -51,4 +51,5 @@ The Samsung UN85TU7000FXZA browser has **not** been tested. Samsung's published 
 
 - **v0.1.0** — first repository-hosted, self-contained playable island scene.
 - **v0.2.0** — autonomous activity state machines, bounded roaming, blended poses, live behaviour readout, and a Node-based mocked runtime smoke test.
-- **v0.3.0** — runtime WebGL2/WebGL1 capability detection with explicit Canvas 2D fallback; no renderer switch until actual device support is verified.
+- **v0.3.0** — runtime WebGL2/WebGL1 capability detection with explicit Canvas 2D fallback.
+- **v0.4.0** — first active GPU-rendered pass: shader-based day/night sky gradient on WebGL2 or WebGL1, with Canvas 2D fallback.

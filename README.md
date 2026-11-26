@@ -2,7 +2,7 @@
 
 A code-first, ambient dinosaur-island project. This repository is the working home for Jurassic Terrarium.
 
-## v0.6.0 — predator-prey behaviour and GPU-rendered sky
+## v0.7.0 — predator-prey behaviour and GPU-rendered sky
 
 Open **[index.html](./index.html)** in a modern browser. The page is self-contained and uses the browser's built-in Canvas 2D and optional WebGL APIs. It loads no external libraries, assets, fonts, APIs, or paid services.
 

@@ -22,13 +22,24 @@ function boot(webglMode) {
     get(target, key) { return key in target ? target[key] : noop; },
     set(target, key, value) { target[key] = value; return true; }
   });
-  let contextReleased = false;
+  let gpuDrawCount = 0;
   const glContext = {
-    getExtension(name) {
-      return name === "WEBGL_lose_context"
-        ? { loseContext() { contextReleased = true; } }
-        : null;
-    }
+    VERTEX_SHADER:1, FRAGMENT_SHADER:2, COMPILE_STATUS:3, LINK_STATUS:4,
+    ARRAY_BUFFER:5, STATIC_DRAW:6, FLOAT:7, TRIANGLE_STRIP:8,
+    createShader(type) { return { type }; },
+    shaderSource(shader, source) { shader.source = source; },
+    compileShader(shader) { shader.compiled = true; },
+    getShaderParameter() { return true; },
+    getShaderInfoLog() { return ""; },
+    createProgram() { return {}; },
+    attachShader() {}, linkProgram() {},
+    getProgramParameter() { return true; },
+    getProgramInfoLog() { return ""; },
+    createBuffer() { return {}; }, bindBuffer() {}, bufferData() {},
+    getAttribLocation() { return 0; }, getUniformLocation() { return {}; },
+    viewport() {}, useProgram() {}, enableVertexAttribArray() {},
+    vertexAttribPointer() {}, uniform1f() {},
+    drawArrays() { gpuDrawCount++; }
   };
 
   function element(id) {
@@ -73,7 +84,7 @@ function boot(webglMode) {
   vm.runInNewContext(source, sandbox, { timeout: 2000 });
   return {
     handlers, elements, frameQueue,
-    contextWasReleased: () => contextReleased,
+    gpuDrawCount: () => gpuDrawCount,
     step(timestamp) {
       const callback = frameQueue.shift();
       assert.ok(callback, "animation frame was scheduled");
@@ -83,8 +94,7 @@ function boot(webglMode) {
 }
 
 const runtime = boot("webgl1");
-assert.equal(runtime.elements.get("graphics").textContent, "WEBGL1 DETECTED · 2D ACTIVE");
-assert.ok(runtime.contextWasReleased(), "temporary WebGL probe context is released");
+assert.equal(runtime.elements.get("graphics").textContent, "WEBGL1 ACTIVE · GPU SKY");
 runtime.step(0);
 for (let i = 1; i <= 600; i++) runtime.step(i * 50);
 
@@ -92,6 +102,7 @@ const status = runtime.elements.get("status").textContent;
 assert.ok(status.startsWith("HERD "), "herd activity is visible");
 assert.ok(status.includes(" · REX "), "T. rex activity is visible");
 assert.ok(status.includes(" · BRACH "), "Brachiosaurus activity is visible");
+assert.ok(runtime.gpuDrawCount() > 0, "WebGL sky pass renders frames");
 
 runtime.elements.get("cycle").click();
 assert.ok(runtime.elements.get("clock").textContent.includes("NIGHT"), "night control responds");
@@ -108,12 +119,14 @@ runtime.handlers.get("world:pointerdown")?.();
 assert.ok(runtime.elements.get("world").style.transform.startsWith("scale("), "camera control responds");
 
 const webgl2 = boot("webgl2");
-assert.equal(webgl2.elements.get("graphics").textContent, "WEBGL2 DETECTED · 2D ACTIVE");
+assert.equal(webgl2.elements.get("graphics").textContent, "WEBGL2 ACTIVE · GPU SKY");
+webgl2.step(0);
+assert.ok(webgl2.gpuDrawCount() > 0, "WebGL2 sky pass renders a frame");
 const canvasOnly = boot("none");
 assert.equal(canvasOnly.elements.get("graphics").textContent, "CANVAS 2D ONLY");
 
 console.log("PASS: inline script parses");
-console.log("PASS: WebGL2, WebGL1 and Canvas-only capability paths are distinguished");
+console.log("PASS: WebGL2 and WebGL1 GPU sky passes render; Canvas-only fallback is retained");
 console.log("PASS: 30 seconds of mocked animation frames run without runtime errors");
 console.log("PASS: autonomous herd, rex and brach activity states are exposed");
 console.log("PASS: day/night, rain, pause/resume and camera controls respond");

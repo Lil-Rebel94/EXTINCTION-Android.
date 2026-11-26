@@ -31,7 +31,7 @@ button:focus-visible{outline:2px solid #d5eaa0;outline-offset:2px}button:active{
   </nav>
 </header>
 <div id="bottom">Ambient island preview · Tap the landscape to shift the camera view</div>
-<div id="status">PROCEDURAL TEST BUILD · v0.6.0</div>
+<div id="status">PROCEDURAL TEST BUILD · v0.7.0</div>
 <script>
 (function(){
 "use strict";
@@ -279,10 +279,34 @@ const dinoSphere=(function(){
  for(let r=0;r<rings;r++)for(let s=0;s<sectors;s++){const a=r*(sectors+1)+s,b=a+sectors+1;faces.push([a,b,a+1],[a+1,b,b+1]);}
  return {v,faces};
 })();
-function drawDino3D(x,y,scaleD,phase,dir,mode,gait){
+function drawDino3D(x,y,scaleD,phase,dir,mode,gait,kind="rex"){
  // A low-poly articulated mesh built from shaded triangular ellipsoids.
  const bob=Math.sin(phase*2)*.9*(.2+gait*.8),stride=Math.sin(phase*3)*gait;
- const parts=[
+ const parts=kind==="brach"?[
+  {p:[-3,0,0],r:[0,0,0],s:[25,11,10],c:[132,151,94]},
+  {p:[-27,1,0],r:[0,0,-.12+stride*.04],s:[25,2.5,2.8],c:[115,137,83]},
+  {p:[-47,2,0],r:[0,0,-.18+stride*.04],s:[18,1.8,2],c:[115,137,83]},
+  {p:[12,-8,0],r:[0,0,-.48],s:[6,22,5],c:[143,158,99]},
+  {p:[19,-28,0],r:[0,0,-.30],s:[5,17,4.5],c:[143,158,99]},
+  {p:[26,-41,0],r:[0,0,0],s:[8,5,5],c:[151,165,107]},
+  {p:[31,-42,4],r:[0,0,0],s:[1.4,1.4,1.4],c:[236,211,138]},
+  {p:[-16,-8,-6],r:[0,0,.12+stride*.3],s:[4.5,16,4.5],c:[104,126,77]},
+  {p:[-16,-8,6],r:[0,0,.12-stride*.3],s:[4.5,16,4.5],c:[111,133,80]},
+  {p:[10,-8,-6],r:[0,0,-.08-stride*.3],s:[4.5,16,4.5],c:[104,126,77]},
+  {p:[10,-8,6],r:[0,0,-.08+stride*.3],s:[4.5,16,4.5],c:[111,133,80]}
+ ]:kind==="herd"?[
+  {p:[-2,0,0],r:[0,0,0],s:[16,8,7],c:[171,174,132]},
+  {p:[-18,1,0],r:[0,0,-.12+stride*.06],s:[15,1.8,2],c:[142,150,111]},
+  {p:[-30,2,0],r:[0,0,-.18+stride*.06],s:[11,1.3,1.5],c:[142,150,111]},
+  {p:[10,-8,0],r:[0,0,-.28],s:[4,9,3.5],c:[184,184,140]},
+  {p:[15,-14,0],r:[0,0,0],s:[6,4,4.2],c:[194,192,151]},
+  {p:[20,-13,2],r:[0,0,0],s:[5,2.2,3],c:[183,183,140]},
+  {p:[21,-16,3],r:[0,0,0],s:[1.1,1.1,1.1],c:[64,59,43]},
+  {p:[-10,-5,-4],r:[0,0,.10+stride*.4],s:[3,12,3],c:[133,142,106]},
+  {p:[-10,-5,4],r:[0,0,.10-stride*.4],s:[3,12,3],c:[144,151,114]},
+  {p:[7,-5,-4],r:[0,0,-.08-stride*.4],s:[3,12,3],c:[133,142,106]},
+  {p:[7,-5,4],r:[0,0,-.08+stride*.4],s:[3,12,3],c:[144,151,114]}
+ ]:[
   {p:[-5,0,0],r:[0,0,0],s:[25,13,11],c:[91,119,69]},
   {p:[-27,2,0],r:[0,0,-.12+stride*.05],s:[29,3.7,4],c:[77,103,61]},
   {p:[-51,4,0],r:[0,0,-.19+stride*.06],s:[22,2.5,2.7],c:[77,103,61]},
@@ -315,14 +339,12 @@ function drawDino3D(x,y,scaleD,phase,dir,mode,gait){
    const ux=b[0]-a[0],uy=b[1]-a[1],vx=c[0]-a[0],vy=c[1]-a[1];
    if((ux*vy-uy*vx)*dir<0)return;
    const light=clamp(.72+(a[3]+b[3]+c[3])*.0035+(a[4]+b[4]+c[4])*.002,.48,1.08);
-   projected.push({z:(a[2]+b[2]+c[2])/3,p:[a,b,c],light});
+   projected.push({z:(a[2]+b[2]+c[2])/3,p:[a,b,c],light,color:part.c});
   });
  });
  projected.sort((a,b)=>a.z-b.z);
  projected.forEach(face=>{
-  const shade=face.light,base=parts[0].c;
-  // Part-specific color is selected from the nearest articulated volume.
-  const rgb=face.z<-4?[77,103,61]:face.z>5?[112,137,81]:[91,119,69];
+  const shade=face.light,rgb=face.color;
   ctx.beginPath();ctx.moveTo(face.p[0][0],face.p[0][1]);ctx.lineTo(face.p[1][0],face.p[1][1]);ctx.lineTo(face.p[2][0],face.p[2][1]);ctx.closePath();
   ctx.fillStyle="rgb("+rgb.map(n=>Math.round(n*shade)).join(",")+")";ctx.fill();
  });
@@ -331,12 +353,12 @@ function drawDino3D(x,y,scaleD,phase,dir,mode,gait){
 function drawAnimals(){
  herd.forEach(a=>{
   const settle=a.mode==="rest"?.003:0;
-  drawDino(a.x,a.y+settle,a.s,"herd",a.phase,a.dir,a.mode,a.gait,a.browse);
+  drawDino3D(a.x,a.y+settle,a.s*.62,a.phase,a.dir,a.mode,a.gait,"herd");
  });
  const rexSettle=rex.mode==="rest"?.007:0;
  const brachSettle=brach.mode==="rest"?.004:0;
  drawDino3D(rex.x,.724+rexSettle,1.12,rex.phase,rex.dir,rex.mode,rex.gait);
- drawDino(brach.x,.656+brachSettle,1.0,"brach",brach.phase,brach.dir,brach.mode,brach.gait,brach.browse);
+ drawDino3D(brach.x,.656+brachSettle,1.0,brach.phase,brach.dir,brach.mode,brach.gait,"brach");
 }
 function drawRain(){
  if(!isRaining)return;

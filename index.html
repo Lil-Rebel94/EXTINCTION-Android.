@@ -25,12 +25,13 @@ button:focus-visible{outline:2px solid #d5eaa0;outline-offset:2px}button:active{
   <div id="title" class="tag">JURASSIC TERRARIUM</div>
   <div id="clock" class="tag">08:30 · DAY</div>
   <div id="weather" class="tag">CLEAR SKIES</div>
+  <div id="graphics" class="tag">CHECKING GPU</div>
   <nav id="controls" aria-label="Terrarium controls">
     <button id="cycle">Night view</button><button id="storm">Start rain</button><button id="pause">Pause</button>
   </nav>
 </header>
 <div id="bottom">Ambient island preview · Tap the landscape to shift the camera view</div>
-<div id="status">PROCEDURAL TEST BUILD · v0.2.0</div>
+<div id="status">PROCEDURAL TEST BUILD · v0.3.0</div>
 <script>
 (function(){
 "use strict";
@@ -103,6 +104,25 @@ function updateStatus(){
  const herdMode=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]||"forage";
  $("status").textContent="HERD "+activityName(herdMode)+" · REX "+activityName(rex.mode)+" · BRACH "+activityName(brach.mode);
 }
+function probeGraphics(){
+ try{
+  const scratch=document.createElement("canvas");
+  const options={alpha:false,antialias:false,depth:true,stencil:false,powerPreference:"low-power"};
+  let gl=null,label="CANVAS 2D ONLY";
+  try{gl=scratch.getContext("webgl2",options);}catch(error){}
+  if(gl){label="WEBGL2 DETECTED · 2D ACTIVE";}
+  else{
+   try{gl=scratch.getContext("webgl",options)||scratch.getContext("experimental-webgl",options);}catch(error){}
+   if(gl)label="WEBGL1 DETECTED · 2D ACTIVE";
+  }
+  if(gl&&gl.getExtension){
+   const lose=gl.getExtension("WEBGL_lose_context");
+   if(lose&&lose.loseContext)lose.loseContext();
+  }
+  return label;
+ }catch(error){return "CANVAS 2D ONLY";}
+}
+$("graphics").textContent=probeGraphics();
 function drawSky(){
  const g=ctx.createLinearGradient(0,0,0,height);
  if(isNight){g.addColorStop(0,"#071326");g.addColorStop(.57,"#203b46");g.addColorStop(1,"#65745a");}

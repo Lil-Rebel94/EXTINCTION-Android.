@@ -1,13 +1,17 @@
 # Project checkpoint
 
 - **Project:** Jurassic Terrarium
-- **Version:** v0.4.0
+- **Version:** v0.5.0
 - **Repository:** `Lil-Rebel94/EXTINCTION-Android.` (default branch `main`)
 - **Current entry point:** `index.html` (latest verified blob `c611b4ee5f391a6e05351b65f8b0d2d9712949dd`)
 - **Test:** `node tests/behavior-smoke.mjs`
 - **TV research:** `docs/TV_COMPATIBILITY.md`
 
 ## Completed this run
+
+- Added a predator-prey encounter loop: nearby herd animals become alert, the T. rex stalks a nearby target, and a close encounter triggers a short pursuit with the target fleeing faster and beyond its normal roaming radius.
+- Added a pursuit cooldown and explicit `STALKING`, `HUNTING`, and `FLEEING` activity labels to prevent constant re-triggering and make encounters visible.
+- Added deterministic smoke-test coverage for the close-range pursuit and fleeing response.
 
 - Added the first actual GPU-rendered scene pass: a GLSL sky gradient, with day/night uniform, rendered through WebGL2 or WebGL1 and composited into the existing Canvas 2D scene.
 - Kept the full Canvas 2D sky gradient as a fallback when context creation, shader compilation, or program linking fails.
@@ -21,6 +25,7 @@
 ## Verification
 
 - Inline JavaScript syntax compilation after latest commit: **PASS**.
+- Mocked ecosystem encounter: **PASS** — forced close-range encounter transitioned T. rex to `hunt`, prey to `flee`, and moved the prey away from the predator.
 - Mocked runtime validation after GPU pass: **PASS** — 30 simulated seconds (601 frames) each on WebGL2 and WebGL1, with GPU draw calls; Canvas-only and shader-compilation-failure fallbacks produced zero GPU draw calls.
 - Final post-cleanup runtime harness rerun: **PASS**.
 - Mocked runtime harness: **PASS** — 30 simulated seconds, no runtime errors.
@@ -34,8 +39,8 @@
 
 ## Known limitations
 
-The renderer is hybrid WebGL + Canvas 2D; only the sky gradient currently uses WebGL. The dinosaur models remain stylized procedural silhouettes with basic activity poses, not photorealistic meshes or skeletal rigs. Feeding/hunting interactions, herd-level social behavior, territorial simulation, soundscape, persistent world state, complete verified film species roster, and 3D rendering remain outstanding. Samsung's published general specifications list 1920×1080 application resolution for TV apps even on 4K models, so native 4K browser rendering is not assumed.
+The renderer is hybrid WebGL + Canvas 2D; only the sky gradient currently uses WebGL. The dinosaur models remain stylized procedural silhouettes with basic activity poses, not photorealistic meshes or skeletal rigs. Predator behaviour currently stops at stalking and a short chase; no kill, feeding, or carcass cycle is implemented. Herd cohesion/social behaviour, territorial simulation, soundscape, persistent world state, complete verified film species roster, and 3D rendering remain outstanding. Samsung's published general specifications list 1920×1080 application resolution for TV apps even on 4K models, so native 4K browser rendering is not assumed.
 
 ## Next engineering task
 
-Validate the new shader pass in a real browser/GPU, then replace procedural dinosaur silhouettes with articulated 3D meshes and skeletal animation. Keep the Canvas fallback until browser and TV testing pass.
+Validate the hybrid renderer in a real browser/GPU, then replace procedural dinosaur silhouettes with articulated 3D meshes and skeletal animation. Keep the Canvas fallback until browser and TV testing pass.

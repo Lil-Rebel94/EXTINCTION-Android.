@@ -30,7 +30,7 @@ button:focus-visible{outline:2px solid #d5eaa0;outline-offset:2px}button:active{
   </nav>
 </header>
 <div id="bottom">Ambient island preview · Tap the landscape to shift the camera view</div>
-<div id="status">PROCEDURAL TEST BUILD · v0.1.0</div>
+<div id="status">PROCEDURAL TEST BUILD · v0.2.0</div>
 <script>
 (function(){
 "use strict";
@@ -44,15 +44,65 @@ const mix=(a,b,t)=>a+(b-a)*t;
 const seeded=(n)=>{let x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);};
 const clouds=Array.from({length:11},(_,i)=>({x:seeded(i+1)*1.35-.15,y:.10+seeded(i+23)*.22,s:.55+seeded(i+45)*.9,speed:.004+seeded(i+67)*.009}));
 const trees=Array.from({length:115},(_,i)=>({x:seeded(i+101),y:.48+seeded(i+211)*.22,s:.45+seeded(i+307)*.9,kind:seeded(i+401)}));
-const herd=Array.from({length:9},(_,i)=>({x:.32+i*.027,y:.684+seeded(i+501)*.025,phase:seeded(i+601)*6.28,s:.52+seeded(i+701)*.18,dir:i%2?1:-1}));
+const herd=Array.from({length:9},(_,i)=>({x:.32+i*.027,homeX:.32+i*.027,y:.684+seeded(i+501)*.025,phase:seeded(i+601)*6.28,s:.52+seeded(i+701)*.18,dir:i%2?1:-1,speed:.004+seeded(i+721)*.004,seed:i+1501,transitions:0,mode:"forage",modeTime:6+seeded(i+1601)*6,gait:0,browse:1}));
 const drops=Array.from({length:190},(_,i)=>({x:seeded(i+801),y:seeded(i+901),speed:.5+seeded(i+1001)*.8}));
-const rex={x:.72,phase:0,step:0};
-const brach={x:.19,phase:0,step:0};
+const rex={x:.72,homeX:.72,phase:0,seed:2501,transitions:0,mode:"patrol",modeTime:8,gait:1,browse:0,dir:1,speed:.0065};
+const brach={x:.19,homeX:.19,phase:0,seed:3501,transitions:0,mode:"browse",modeTime:11,gait:.04,browse:1,dir:1,speed:.003};
 function resize(){scale=Math.min(window.devicePixelRatio||1,1.75);width=innerWidth;height=innerHeight;canvas.width=Math.max(1,Math.floor(width*scale));canvas.height=Math.max(1,Math.floor(height*scale));ctx.setTransform(scale,0,0,scale,0,0);}
 window.addEventListener("resize",resize,{passive:true});resize();
 function path(points,fill){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
 function oval(x,y,rx,ry,fill,rotation){ctx.beginPath();ctx.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),rotation||0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();}
 function line(points,color,thick){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.strokeStyle=color;ctx.lineWidth=thick;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke();}
+function chooseNextActivity(actor,role){
+ actor.transitions++;
+ const roll=seeded(actor.seed+actor.transitions*41.73);
+ if(role==="herd"){
+  if(roll<.54){actor.mode="forage";actor.modeTime=7+roll*7;}
+  else if(roll<.82){actor.mode="walk";actor.modeTime=3+roll*5;}
+  else if(roll<.93){actor.mode="alert";actor.modeTime=2+roll*3;}
+  else{actor.mode="rest";actor.modeTime=4+roll*6;}
+ }else if(role==="rex"){
+  if(roll<.56){actor.mode="patrol";actor.modeTime=5+roll*7;}
+  else if(roll<.83){actor.mode="scan";actor.modeTime=3+roll*5;}
+  else{actor.mode="rest";actor.modeTime=5+roll*8;}
+ }else{
+  if(roll<.65){actor.mode="browse";actor.modeTime=7+roll*8;}
+  else if(roll<.88){actor.mode="walk";actor.modeTime=3+roll*5;}
+  else{actor.mode="rest";actor.modeTime=5+roll*7;}
+ }
+ actor.dir=seeded(actor.seed+actor.transitions*17.19)>.5?1:-1;
+}
+function updateActor(actor,dt,role){
+ actor.modeTime-=dt;
+ if(actor.modeTime<=0)chooseNextActivity(actor,role);
+ const moving=actor.mode==="walk"||actor.mode==="patrol";
+ const targetGait=moving?1:(actor.mode==="alert"||actor.mode==="scan"?.16:0);
+ const targetBrowse=actor.mode==="forage"||actor.mode==="browse"?1:0;
+ actor.gait=mix(actor.gait,targetGait,dt*2.4);
+ actor.browse=mix(actor.browse,targetBrowse,dt*2.1);
+ actor.phase+=dt*(moving?1.8:.42);
+ if(moving){
+  actor.x+=actor.dir*actor.speed*dt;
+  const radius=role==="herd"?.035:.075;
+  if(actor.x<actor.homeX-radius){actor.x=actor.homeX-radius;actor.dir=1;}
+  if(actor.x>actor.homeX+radius){actor.x=actor.homeX+radius;actor.dir=-1;}
+ }
+}
+function updateEcosystem(dt){
+ herd.forEach(actor=>updateActor(actor,dt,"herd"));
+ updateActor(rex,dt,"rex");
+ updateActor(brach,dt,"brach");
+}
+function activityName(mode){
+ const names={forage:"FORAGING",walk:"MOVING",alert:"ALERT",rest:"RESTING",patrol:"PATROLLING",scan:"SCANNING",browse:"BROWSING"};
+ return names[mode]||mode.toUpperCase();
+}
+function updateStatus(){
+ const counts={};
+ herd.forEach(actor=>{counts[actor.mode]=(counts[actor.mode]||0)+1;});
+ const herdMode=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]||"forage";
+ $("status").textContent="HERD "+activityName(herdMode)+" · REX "+activityName(rex.mode)+" · BRACH "+activityName(brach.mode);
+}
 function drawSky(){
  const g=ctx.createLinearGradient(0,0,0,height);
  if(isNight){g.addColorStop(0,"#071326");g.addColorStop(.57,"#203b46");g.addColorStop(1,"#65745a");}
@@ -118,10 +168,12 @@ function drawPark(){
  ctx.fillStyle="#d8cda1";ctx.fillRect(vx,vy,31,13);ctx.fillStyle="#27312b";ctx.fillRect(vx+5,vy-6,15,7);
  oval(vx+6,vy+14,5,5,"#171d1b");oval(vx+25,vy+14,5,5,"#171d1b");
 }
-function drawDino(x,y,s,type,phase,dir){
+function drawDino(x,y,s,type,phase,dir,mode,gait,browse){
  ctx.save();ctx.translate(x*width,y*height);ctx.scale(s*dir,s);
- const bob=Math.sin(phase*2)*1.8,walk=Math.sin(phase*3);
- ctx.translate(0,bob);
+ const bob=Math.sin(phase*2)*1.8*(.18+gait*.82);
+ const walk=Math.sin(phase*3)*gait;
+ const crouch=type==="rex"&&mode==="rest"?3:0;
+ ctx.translate(0,bob+crouch);
  if(type==="rex"){
   // Tail first, then torso, neck and skull: layered forms keep the silhouette readable.
   line([[-16,-2],[-42,-8],[-68,-18+walk*1.5],[-83,-21+walk*1.7]],"#536c48",11);
@@ -133,15 +185,17 @@ function drawDino(x,y,s,type,phase,dir){
   line([[8,10],[10-walk*3,27],[20-walk*4,29]],"#4d6745",7);
   line([[15,-5],[22,1],[28,-1]],"#81966a",2.5);
  }else if(type==="brach"){
-  line([[7,-10],[10,-29],[15,-48],[20,-62]],"#839762",11);
-  oval(-5,0,29,15,"#849966");oval(20,-63,8,6,"#8d9e68");
-  line([[24,-62],[33,-59]],"#8d9e68",4);
+  const headY=mix(-63,-42,browse),neckMid=mix(-48,-31,browse);
+  line([[7,-10],[10,-29],[15,neckMid],[20,headY]],"#839762",11);
+  oval(-5,0,29,15,"#849966");oval(20,headY,8,6,"#8d9e68");
+  line([[24,headY],[33,headY+4]],"#8d9e68",4);
   line([[-28,-3],[-44,-9],[-59,-14]],"#849966",5);
   line([[-18,8],[-19+walk*2,26]],"#697e50",7);line([[14,8],[15-walk*2,26]],"#697e50",7);
  }else{
   line([[-7,-6],[-24,-12],[-39,-17]],"#989d73",5);
-  oval(0,-7,16,10,"#b2b58b");oval(12,-18,7,6,"#c1bf95");
-  path([[17,-20],[26,-16],[17,-14]],"#b2b58b");
+  const headDrop=browse*3.5;
+  oval(0,-7,16,10,"#b2b58b");oval(12,-18+headDrop,7,6,"#c1bf95");
+  path([[17,-20+headDrop],[26,-16+headDrop],[17,-14+headDrop]],"#b2b58b");
   line([[-7,0],[-9+walk*3,14]],"#757d5d",4.5);line([[8,0],[9-walk*3,14]],"#757d5d",4.5);
   // Small feathered tail fringe.
   for(let i=0;i<4;i++)line([[-27-i*3,-12-i*1.3],[-31-i*3,-17-i*1.5]],"#aaa980",1.4);
@@ -149,13 +203,14 @@ function drawDino(x,y,s,type,phase,dir){
  ctx.restore();
 }
 function drawAnimals(){
- herd.forEach((a,i)=>{
-  const drift=Math.sin(elapsed*.18+a.phase)*.012;
-  drawDino(a.x+drift,a.y,a.s,"herd",a.phase+elapsed*1.6,a.dir);
+ herd.forEach(a=>{
+  const settle=a.mode==="rest"?.003:0;
+  drawDino(a.x,a.y+settle,a.s,"herd",a.phase,a.dir,a.mode,a.gait,a.browse);
  });
- const rx=.70+Math.sin(elapsed*.075)*.025;
- drawDino(rx,.724,1.12,"rex",elapsed*1.7,1);
- drawDino(.19+Math.sin(elapsed*.055)*.012,.656,1.0,"brach",elapsed*.8,1);
+ const rexSettle=rex.mode==="rest"?.007:0;
+ const brachSettle=brach.mode==="rest"?.004:0;
+ drawDino(rex.x,.724+rexSettle,1.12,"rex",rex.phase,rex.dir,rex.mode,rex.gait,rex.browse);
+ drawDino(brach.x,.656+brachSettle,1.0,"brach",brach.phase,brach.dir,brach.mode,brach.gait,brach.browse);
 }
 function drawRain(){
  if(!isRaining)return;
@@ -174,11 +229,18 @@ function render(){
  vignette.addColorStop(0,"#00000000");vignette.addColorStop(1,"#06120f66");
  ctx.fillStyle=vignette;ctx.fillRect(0,0,width,height);
 }
+let statusClock=0;
 function tick(now){
  if(!last)last=now;const dt=Math.min((now-last)/1000,.05);last=now;
- if(!paused){elapsed+=dt;herd.forEach(a=>a.phase+=dt*1.6);}
+ if(!paused){
+  elapsed+=dt;
+  updateEcosystem(dt);
+  statusClock+=dt;
+  if(statusClock>=1){statusClock=0;updateStatus();}
+ }
  render();requestAnimationFrame(tick);
 }
+updateStatus();
 requestAnimationFrame(tick);
 $("cycle").addEventListener("click",()=>{isNight=!isNight;$("cycle").textContent=isNight?"Day view":"Night view";$("clock").textContent=isNight?"23:40 · NIGHT":"08:30 · DAY";});
 $("storm").addEventListener("click",()=>{isRaining=!isRaining;$("storm").textContent=isRaining?"Stop rain":"Start rain";$("weather").textContent=isRaining?"TROPICAL RAIN":"CLEAR SKIES";});

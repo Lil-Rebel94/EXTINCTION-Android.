@@ -31,7 +31,7 @@ button:focus-visible{outline:2px solid #d5eaa0;outline-offset:2px}button:active{
   </nav>
 </header>
 <div id="bottom">Ambient island preview · Tap the landscape to shift the camera view</div>
-<div id="status">PROCEDURAL TEST BUILD · v0.5.0</div>
+<div id="status">PROCEDURAL TEST BUILD · v0.6.0</div>
 <script>
 (function(){
 "use strict";
@@ -272,6 +272,62 @@ function drawDino(x,y,s,type,phase,dir,mode,gait,browse){
  }
  ctx.restore();
 }
+
+const dinoSphere=(function(){
+ const v=[],faces=[],rings=8,sectors=12;
+ for(let r=0;r<=rings;r++){const phi=Math.PI*r/rings;for(let s=0;s<=sectors;s++){const theta=2*Math.PI*s/sectors;v.push([Math.sin(phi)*Math.cos(theta),Math.cos(phi),Math.sin(phi)*Math.sin(theta)]);}}
+ for(let r=0;r<rings;r++)for(let s=0;s<sectors;s++){const a=r*(sectors+1)+s,b=a+sectors+1;faces.push([a,b,a+1],[a+1,b,b+1]);}
+ return {v,faces};
+})();
+function drawDino3D(x,y,scaleD,phase,dir,mode,gait){
+ // A low-poly articulated mesh built from shaded triangular ellipsoids.
+ const bob=Math.sin(phase*2)*.9*(.2+gait*.8),stride=Math.sin(phase*3)*gait;
+ const parts=[
+  {p:[-5,0,0],r:[0,0,0],s:[25,13,11],c:[91,119,69]},
+  {p:[-27,2,0],r:[0,0,-.12+stride*.05],s:[29,3.7,4],c:[77,103,61]},
+  {p:[-51,4,0],r:[0,0,-.19+stride*.06],s:[22,2.5,2.7],c:[77,103,61]},
+  {p:[17,8,0],r:[0,0,.25],s:[12,6,7],c:[103,132,77]},
+  {p:[28,13,0],r:[0,0,.12],s:[13,6.5,7],c:[111,137,81]},
+  {p:[39,11,0],r:[0,0,-.04],s:[11,4.2,6],c:[110,133,77]},
+  {p:[44,7,0],r:[0,0,0],s:[9,2.4,5],c:[190,174,128]},
+  {p:[44,15,5],r:[0,0,0],s:[1.7,1.7,1.7],c:[239,210,135]},
+  {p:[-15,-10,-7],r:[0,0,.10+stride*.35],s:[5,17,5],c:[77,101,60]},
+  {p:[-15,-10,7],r:[0,0,.10-stride*.35],s:[5,17,5],c:[83,108,64]},
+  {p:[8,-10,-7],r:[0,0,-.08-stride*.35],s:[5,17,5],c:[77,101,60]},
+  {p:[8,-10,7],r:[0,0,-.08+stride*.35],s:[5,17,5],c:[83,108,64]},
+  {p:[24,0,-8],r:[0,0,-.2],s:[8,2.5,2.5],c:[117,139,83]},
+  {p:[24,0,8],r:[0,0,-.2],s:[8,2.5,2.5],c:[117,139,83]}
+ ];
+ const projected=[];
+ parts.forEach(part=>{
+  const [px,py,pz]=part.p,[rx,ry,rz]=part.r,[sx,sy,sz]=part.s;
+  const cr=Math.cos(rx),sr=Math.sin(rx),cy=Math.cos(ry),sy=Math.sin(ry),cz=Math.cos(rz),szn=Math.sin(rz);
+  const points=dinoSphere.v.map(v=>{
+   let X=v[0]*sx,Y=v[1]*sy,Z=v[2]*sz;
+   let yy=Y*cr-Z*sr,zz=Y*sr+Z*cr;X=X*cy+zz*sy;zz=-X*sy+zz*cy;
+   const xx=X*cz-yy*szn, y2=X*szn+yy*cz;
+   const depth=zz+pz;
+   const perspective=1+depth*.002;
+   return [x*width+(px+xx*dir)*scaleD*perspective,y*height+(py+y2+bob)*scaleD*perspective,depth,xx, y2];
+  });
+  dinoSphere.faces.forEach(face=>{
+   const a=points[face[0]],b=points[face[1]],c=points[face[2]];
+   const ux=b[0]-a[0],uy=b[1]-a[1],vx=c[0]-a[0],vy=c[1]-a[1];
+   if((ux*vy-uy*vx)*dir<0)return;
+   const light=clamp(.72+(a[3]+b[3]+c[3])*.0035+(a[4]+b[4]+c[4])*.002,.48,1.08);
+   projected.push({z:(a[2]+b[2]+c[2])/3,p:[a,b,c],light});
+  });
+ });
+ projected.sort((a,b)=>a.z-b.z);
+ projected.forEach(face=>{
+  const shade=face.light,base=parts[0].c;
+  // Part-specific color is selected from the nearest articulated volume.
+  const rgb=face.z<-4?[77,103,61]:face.z>5?[112,137,81]:[91,119,69];
+  ctx.beginPath();ctx.moveTo(face.p[0][0],face.p[0][1]);ctx.lineTo(face.p[1][0],face.p[1][1]);ctx.lineTo(face.p[2][0],face.p[2][1]);ctx.closePath();
+  ctx.fillStyle="rgb("+rgb.map(n=>Math.round(n*shade)).join(",")+")";ctx.fill();
+ });
+}
+
 function drawAnimals(){
  herd.forEach(a=>{
   const settle=a.mode==="rest"?.003:0;
@@ -279,7 +335,7 @@ function drawAnimals(){
  });
  const rexSettle=rex.mode==="rest"?.007:0;
  const brachSettle=brach.mode==="rest"?.004:0;
- drawDino(rex.x,.724+rexSettle,1.12,"rex",rex.phase,rex.dir,rex.mode,rex.gait,rex.browse);
+ drawDino3D(rex.x,.724+rexSettle,1.12,rex.phase,rex.dir,rex.mode,rex.gait);
  drawDino(brach.x,.656+brachSettle,1.0,"brach",brach.phase,brach.dir,brach.mode,brach.gait,brach.browse);
 }
 function drawRain(){

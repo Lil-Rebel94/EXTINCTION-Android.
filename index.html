@@ -76,14 +76,14 @@ function updateActor(actor,dt,role){
  actor.modeTime-=dt;
  if(actor.modeTime<=0)chooseNextActivity(actor,role);
  const moving=actor.mode==="walk"||actor.mode==="patrol";
- const targetGait=moving?1:(actor.mode==="alert"||actor.mode==="scan"?.16:0);
- const targetBrowse=actor.mode==="forage"||actor.mode==="browse"?1:0;
+ const targetGait=moving?1:((actor.mode==="alert"||actor.mode==="scan") ? .16 : 0);
+ const targetBrowse=(actor.mode==="forage"||actor.mode==="browse") ? 1 : 0;
  actor.gait=mix(actor.gait,targetGait,dt*2.4);
  actor.browse=mix(actor.browse,targetBrowse,dt*2.1);
  actor.phase+=dt*(moving?1.8:.42);
  if(moving){
   actor.x+=actor.dir*actor.speed*dt;
-  const radius=role==="herd"?.035:.075;
+  const radius=role==="herd" ? .035 : .075;
   if(actor.x<actor.homeX-radius){actor.x=actor.homeX-radius;actor.dir=1;}
   if(actor.x>actor.homeX+radius){actor.x=actor.homeX+radius;actor.dir=-1;}
  }

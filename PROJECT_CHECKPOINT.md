@@ -1,29 +1,35 @@
 # Project checkpoint
 
 - **Project:** Jurassic Terrarium
-- **Version:** v0.1.0
+- **Version:** v0.2.0
 - **Repository:** `Lil-Rebel94/EXTINCTION-Android.` (default branch `main`)
 - **Current entry point:** `index.html`
-- **Documentation:** `README.md`
+- **Test:** `node tests/behavior-smoke.mjs`
+- **TV research:** `docs/TV_COMPATIBILITY.md`
 
 ## Completed this run
-- Initialized the previously empty repository with a self-contained browser prototype.
-- Added a procedural island scene with mountains, lagoon, waterfall, clouds, forest, mist, lodge, fence, road, and safari vehicle.
-- Added animated stylized Tyrannosaurus, Brachiosaurus, and Gallimimus-like herd figures.
-- Added day/night, rain, pause/resume, camera-view shift, and keyboard shortcuts.
-- Kept the first sample dependency-free and responsive.
+
+- Added deterministic per-animal finite-state activity to the existing procedural actors.
+- Gallimimus-like herd members transition between foraging, walking, alert pauses and rest.
+- T. rex transitions between patrol, scanning and rest.
+- Brachiosaurus transitions between browsing, walking and rest; the neck/head pose blends down while browsing.
+- Added smooth gait/activity blending, bounded roaming around each actor's home range, and a live activity readout.
+- Added a mocked runtime smoke test covering script parsing, animation-frame execution, behaviour-state output and UI controls.
+- Researched Samsung's published 2020 TV web-engine baseline and recorded the WebGL2 / app-resolution uncertainties.
 
 ## Verification
-- Retrieved the committed `index.html` back from GitHub.
-- Inline JavaScript syntax compilation: **PASS**.
-- Static assertions for canvas, animation loop, dinosaur actors, day/night, rain, pause, and absence of external script/style dependencies: **PASS**.
-- Mocked Canvas runtime smoke test: **PASS** (one frame rendered through a stubbed Canvas API; day/night, rain, and pause handlers exercised).
+
+- Inline JavaScript syntax compilation before commit: **PASS**.
+- Static feature assertions before commit: **PASS**.
+- Node mocked runtime smoke test: **added; execution pending local Node runtime**.
 - Actual browser/GPU rendering: **NOT RUN**.
-- Samsung UN85TU7000FXZA playback: **NOT TESTED**.
-- 4K, frame rate, and long-duration stability: **NOT VERIFIED**.
+- Samsung UN85TU7000FXZA firmware/browser/WebGL2: **NOT QUERIED ON DEVICE**.
+- Real-TV playback, 4K output and frame rate: **NOT VERIFIED**.
 
 ## Known limitations
-This is a functional early visual sample, not a photorealistic release. Dinosaur meshes are stylized drawn shapes with simple looping motion. Species roster verification, detailed anatomy, behavior simulation, soundscape, persistent world state, and TV-specific remote/navigation optimization remain outstanding. The current renderer is Canvas 2D, not WebGL2.
+
+This remains a stylized Canvas 2D prototype. Dinosaur anatomy is simplified; current behaviour is state-based ambient motion, not a full ecological simulation. No feeding/hunting interactions, soundscape, persistence, complete species roster, or 3D renderer yet. The TV's panel is 4K, but Samsung's published general specifications list 1920×1080 application resolution; native 4K browser rendering is not assumed.
 
 ## Next engineering task
-Add an optional WebGL2 renderer for terrain, atmosphere, and lighting while retaining the Canvas 2D fallback. First gather device/browser compatibility evidence before selecting a default renderer for the Samsung TV.
+
+Implement a WebGL capability probe and a minimal GPU-rendered terrain/sky pass, retaining the current Canvas 2D renderer as the fallback. Do not select WebGL2 as the TV default until device testing confirms it.

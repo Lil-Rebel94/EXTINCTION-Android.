@@ -3,7 +3,7 @@
 - **Project:** Jurassic Terrarium
 - **Version:** v0.3.0
 - **Repository:** `Lil-Rebel94/EXTINCTION-Android.` (default branch `main`)
-- **Current entry point:** `index.html`
+- **Current entry point:** `index.html` (latest verified blob `12fd1b1d7a5b036f839eeaada0ca130a2309bcab`)
 - **Test:** `node tests/behavior-smoke.mjs`
 - **TV research:** `docs/TV_COMPATIBILITY.md`
 
@@ -19,6 +19,7 @@
 ## Verification
 
 - Inline JavaScript syntax compilation after latest commit: **PASS**.
+- Final post-cleanup runtime harness rerun: **PASS**.
 - Mocked runtime harness: **PASS** — 30 simulated seconds, no runtime errors.
 - Graphics probe branches: **PASS** — WebGL2 detected, WebGL1 detected after WebGL2 miss, and Canvas-only fallback.
 - Activity readout: **PASS** — herd, T. rex and Brachiosaurus states displayed.

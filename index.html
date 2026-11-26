@@ -116,8 +116,10 @@ function probeGraphics(){
    if(gl)label="WEBGL1 DETECTED · 2D ACTIVE";
   }
   if(gl&&gl.getExtension){
-   const lose=gl.getExtension("WEBGL_lose_context");
-   if(lose&&lose.loseContext)lose.loseContext();
+   try{
+    const lose=gl.getExtension("WEBGL_lose_context");
+    if(lose&&lose.loseContext)lose.loseContext();
+   }catch(error){}
   }
   return label;
  }catch(error){return "CANVAS 2D ONLY";}

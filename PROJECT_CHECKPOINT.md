@@ -3,7 +3,7 @@
 - **Project:** Jurassic Terrarium
 - **Version:** v0.4.0
 - **Repository:** `Lil-Rebel94/EXTINCTION-Android.` (default branch `main`)
-- **Current entry point:** `index.html` (latest verified blob `12fd1b1d7a5b036f839eeaada0ca130a2309bcab`)
+- **Current entry point:** `index.html` (latest verified blob `c611b4ee5f391a6e05351b65f8b0d2d9712949dd`)
 - **Test:** `node tests/behavior-smoke.mjs`
 - **TV research:** `docs/TV_COMPATIBILITY.md`
 
@@ -14,9 +14,7 @@
 - Updated the graphics badge to report `WEBGL2 ACTIVE · GPU SKY`, `WEBGL1 ACTIVE · GPU SKY`, or `CANVAS 2D ONLY` rather than implying that detection alone activates a GPU renderer.
 
 - Preserved and extended the existing v0.2.0 ambient dinosaur activity system: herd foraging/walking/alert/rest, T. rex patrol/scan/rest, and Brachiosaurus browse/walk/rest.
-- Added a startup graphics capability probe using a temporary canvas: WebGL2 first, then WebGL1/experimental WebGL, with explicit Canvas-only fallback.
-- Added an on-screen graphics badge. It reports detected capability while the scene continues to use Canvas 2D; no unverified GPU renderer is enabled.
-- Releases the temporary WebGL probe context after detection to avoid keeping an unnecessary GPU context alive.
+- The GPU pass uses a dedicated WebGL canvas and retains the existing scene canvas for 2D compositing.
 - Added/updated the Node mocked smoke test to cover WebGL2, WebGL1 and Canvas-only branches, animation, behaviour state output and controls.
 - Recorded Samsung TV browser-engine and application-resolution constraints in `docs/TV_COMPATIBILITY.md`.
 

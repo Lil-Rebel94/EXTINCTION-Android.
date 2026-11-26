@@ -3,7 +3,7 @@
 - **Project:** Jurassic Terrarium
 - **Version:** v0.5.0
 - **Repository:** `Lil-Rebel94/EXTINCTION-Android.` (default branch `main`)
-- **Current entry point:** `index.html` (latest verified blob `c611b4ee5f391a6e05351b65f8b0d2d9712949dd`)
+- **Current entry point:** `index.html` (latest verified blob `d9c1423c888362ad2106a3487e31587d9823c6fc`)
 - **Test:** `node tests/behavior-smoke.mjs`
 - **TV research:** `docs/TV_COMPATIBILITY.md`
 

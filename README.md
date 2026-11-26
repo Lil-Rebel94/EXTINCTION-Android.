@@ -14,9 +14,9 @@ Open **[index.html](./index.html)** in a modern browser. The page is self-contai
 - Keyboard shortcuts: **Space** pauses/resumes, **N** toggles night, **R** toggles rain.
 
 ### Important limits
-This is an **early playable visual prototype**, not the promised photorealistic terrarium. Dinosaur bodies are simplified procedural silhouettes, not finished anatomical meshes or rigs. The animals have basic looping motion; feeding, hunting, social behavior, territory, persistent state, and sound are not implemented. The current renderer is Canvas 2D, deliberately chosen for this first no-dependency browser sample; it is not evidence of WebGL2 support or TV compatibility.
+This is an **early playable visual prototype**, not the promised photorealistic terrarium. Dinosaur bodies are simplified procedural silhouettes, not finished anatomical meshes or rigs. The animals now have deterministic ambient activity states and bounded roaming, but feeding, hunting, herd-level social interactions, territory, persistent state, and sound are not implemented. The current renderer is Canvas 2D, deliberately chosen as a no-dependency compatibility baseline; it is not evidence of WebGL2 support or TV compatibility.
 
-The Samsung UN85TU7000FXZA browser has **not** been tested. Resolution, frame rate, remote-control navigation, sleep/wake behavior, and long-duration stability are unverified. Do not treat this prototype as a 4K/60–120 FPS or TV-validated build.
+The Samsung UN85TU7000FXZA browser has **not** been tested. Samsung's published 2020 TV web-engine baseline is Tizen 5.5 / Chromium M69; its documentation lists WebGL generally but does not establish WebGL2 for this target. Samsung's general specification lists 1920×1080 application resolution even on 4K models. See [TV compatibility notes](./docs/TV_COMPATIBILITY.md). Actual resolution, frame rate, remote-control navigation, sleep/wake behavior, and long-duration stability remain unverified. Do not treat this prototype as a 4K/60–120 FPS or TV-validated build.
 
 ## Run locally
 1. Download `index.html` from this repository.

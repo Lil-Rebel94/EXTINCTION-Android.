@@ -14,14 +14,15 @@
 - T. rex transitions between patrol, scanning and rest.
 - Brachiosaurus transitions between browsing, walking and rest; the neck/head pose blends down while browsing.
 - Added smooth gait/activity blending, bounded roaming around each actor's home range, and a live activity readout.
-- Added a mocked runtime smoke test covering script parsing, animation-frame execution, behaviour-state output and UI controls.
+- Added `tests/behavior-smoke.mjs`, a Node-based mocked runtime smoke test covering script parsing, animation-frame execution, behaviour-state output and UI controls; equivalent assertions were executed in the available JavaScript runtime.
 - Researched Samsung's published 2020 TV web-engine baseline and recorded the WebGL2 / app-resolution uncertainties.
 
 ## Verification
 
-- Inline JavaScript syntax compilation before commit: **PASS**.
+- Inline JavaScript syntax compilation after commit: **PASS**.
 - Static feature assertions before commit: **PASS**.
-- Node mocked runtime smoke test: **added; execution pending local Node runtime**.
+- Mocked runtime harness: **PASS** — 30 simulated seconds, no runtime errors; live herd/T. rex/Brachiosaurus activity readout updated; day/night, rain, pause/resume and camera controls responded.
+- Node CLI test file: **committed; not executed under Node in this environment**.
 - Actual browser/GPU rendering: **NOT RUN**.
 - Samsung UN85TU7000FXZA firmware/browser/WebGL2: **NOT QUERIED ON DEVICE**.
 - Real-TV playback, 4K output and frame rate: **NOT VERIFIED**.

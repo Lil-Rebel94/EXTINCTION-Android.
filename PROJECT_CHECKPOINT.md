@@ -1,13 +1,15 @@
 # Project checkpoint
 
 - **Project:** Jurassic Terrarium
-- **Version:** v0.5.0
+- **Version:** v0.6.0
 - **Repository:** `Lil-Rebel94/EXTINCTION-Android.` (default branch `main`)
-- **Current entry point:** `index.html` (latest verified blob `d9c1423c888362ad2106a3487e31587d9823c6fc`)
+- **Current entry point:** `index.html` (latest verified blob `cc2bc392fce97a9b9ad71140dc870fab5ee61936`)
 - **Test:** `node tests/behavior-smoke.mjs`
 - **TV research:** `docs/TV_COMPATIBILITY.md`
 
 ## Completed this run
+
+- Replaced the T. rex's flat silhouette with a procedural low-poly 3D mesh built from shaded triangle-based ellipsoids. Tail, torso, skull, jaw, eyes, legs and forearms are separate articulated volumes; limb stride and body bob respond to the existing movement state. Brachiosaurus and herd remain on the previous silhouette renderer.
 
 - Added a predator-prey encounter loop: nearby herd animals become alert, the T. rex stalks a nearby target, and a close encounter triggers a short pursuit with the target fleeing faster and beyond its normal roaming radius.
 - Added a pursuit cooldown and explicit `STALKING`, `HUNTING`, and `FLEEING` activity labels to prevent constant re-triggering and make encounters visible.
@@ -39,8 +41,8 @@
 
 ## Known limitations
 
-The renderer is hybrid WebGL + Canvas 2D; only the sky gradient currently uses WebGL. The dinosaur models remain stylized procedural silhouettes with basic activity poses, not photorealistic meshes or skeletal rigs. Predator behaviour currently stops at stalking and a short chase; no kill, feeding, or carcass cycle is implemented. Herd cohesion/social behaviour, territorial simulation, soundscape, persistent world state, complete verified film species roster, and 3D rendering remain outstanding. Samsung's published general specifications list 1920×1080 application resolution for TV apps even on 4K models, so native 4K browser rendering is not assumed.
+The renderer is hybrid WebGL + Canvas 2D; only the sky gradient currently uses WebGL. The T. rex now uses a stylized procedural low-poly 3D mesh with animated part transforms; it is not a high-detail sculpt or a full bone-weighted skeletal rig. Brachiosaurus and herd remain stylized silhouettes. Predator behaviour currently stops at stalking and a short chase; no kill, feeding, or carcass cycle is implemented. Herd cohesion/social behaviour, territorial simulation, soundscape, persistent world state, complete verified film species roster, and 3D rendering remain outstanding. Samsung's published general specifications list 1920×1080 application resolution for TV apps even on 4K models, so native 4K browser rendering is not assumed.
 
 ## Next engineering task
 
-Validate the hybrid renderer in a real browser/GPU, then replace procedural dinosaur silhouettes with articulated 3D meshes and skeletal animation. Keep the Canvas fallback until browser and TV testing pass.
+Validate the hybrid renderer in a real browser/GPU, extend the mesh renderer to Brachiosaurus and herd species, improve articulated joint motion, then add the feeding/carcass cycle. Keep the Canvas fallback until browser and TV testing pass.

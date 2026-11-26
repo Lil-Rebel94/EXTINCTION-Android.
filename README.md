@@ -2,7 +2,7 @@
 
 A code-first, ambient dinosaur-island project. This repository is the working home for Jurassic Terrarium.
 
-## v0.2.0 — autonomous ecosystem behaviour
+## v0.3.0 — autonomous behaviour and GPU capability probe
 
 Open **[index.html](./index.html)** in a modern browser. The page is self-contained and uses only the browser's built-in Canvas 2D API. It loads no external libraries, assets, fonts, APIs, or paid services.
 
@@ -12,6 +12,7 @@ Open **[index.html](./index.html)** in a modern browser. The page is self-contai
 - Animated stylized Tyrannosaurus, Brachiosaurus, and Gallimimus-like herd.
 - Deterministic per-animal activity state machines: herd foraging, walking, alert pauses and rest; T. rex patrol, scan and rest; Brachiosaurus browsing, walking and rest.
 - Smooth gait/browse blending, bounded roaming around each animal's home range, and a live behaviour readout.
+- Runtime WebGL2 → WebGL1 capability probe on a temporary canvas. The current scene deliberately remains on Canvas 2D; the badge reports capability, not an active 3D renderer.
 - Day/night toggle, tropical-rain toggle, pause/resume, camera-view shift, and keyboard shortcuts (**Space**, **N**, **R**).
 - Responsive canvas sizing and a capped device-pixel ratio for a lighter first-run experience.
 
@@ -31,7 +32,7 @@ Run the mocked browser/runtime smoke test with Node.js:
 node tests/behavior-smoke.mjs
 ```
 
-The test checks inline-script parsing, animation-frame execution, activity-state output, and the main controls using a stubbed Canvas API. It is not a substitute for a real browser/GPU test.
+The test checks inline-script parsing, WebGL2/WebGL1/Canvas-only probe paths, animation-frame execution, activity-state output, and the main controls using stubbed browser APIs. It is not a substitute for a real browser/GPU test.
 
 ### Important limits
 
@@ -50,3 +51,4 @@ The Samsung UN85TU7000FXZA browser has **not** been tested. Samsung's published 
 
 - **v0.1.0** — first repository-hosted, self-contained playable island scene.
 - **v0.2.0** — autonomous activity state machines, bounded roaming, blended poses, live behaviour readout, and a Node-based mocked runtime smoke test.
+- **v0.3.0** — runtime WebGL2/WebGL1 capability detection with explicit Canvas 2D fallback; no renderer switch until actual device support is verified.

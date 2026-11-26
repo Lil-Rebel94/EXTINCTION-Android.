@@ -21,10 +21,10 @@
 ## Verification
 
 - Inline JavaScript syntax compilation after latest commit: **PASS**.
-- Mocked runtime validation after GPU pass: **PASS** — 20 frames each on WebGL2 and WebGL1, with GPU draw calls; Canvas-only fallback produced zero GPU draw calls.
+- Mocked runtime validation after GPU pass: **PASS** — 30 simulated seconds (601 frames) each on WebGL2 and WebGL1, with GPU draw calls; Canvas-only and shader-compilation-failure fallbacks produced zero GPU draw calls.
 - Final post-cleanup runtime harness rerun: **PASS**.
 - Mocked runtime harness: **PASS** — 30 simulated seconds, no runtime errors.
-- Graphics probe branches: **PASS** — WebGL2 detected, WebGL1 detected after WebGL2 miss, and Canvas-only fallback.
+- Graphics paths: **PASS** — WebGL2 and WebGL1 render paths, Canvas-only fallback, and shader-compilation-failure fallback.
 - Activity readout: **PASS** — herd, T. rex and Brachiosaurus states displayed.
 - Day/night, rain, pause/resume and camera controls: **PASS**.
 - Node CLI test file: **committed; not executed under Node in this environment**. Equivalent runtime assertions were run in the available JavaScript runtime.

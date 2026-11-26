@@ -9,7 +9,7 @@ assert.ok(scriptStart >= 0 && scriptEnd > scriptStart, "standalone inline script
 const source = html.slice(scriptStart + 8, scriptEnd);
 new vm.Script(source, { filename: "index.html:inline-script" });
 
-function boot(webglMode) {
+function boot(webglMode, failShader = false) {
   const handlers = new Map();
   const elements = new Map();
   const frameQueue = [];
@@ -29,7 +29,7 @@ function boot(webglMode) {
     createShader(type) { return { type }; },
     shaderSource(shader, source) { shader.source = source; },
     compileShader(shader) { shader.compiled = true; },
-    getShaderParameter() { return true; },
+    getShaderParameter() { return !failShader; },
     getShaderInfoLog() { return ""; },
     createProgram() { return {}; },
     attachShader() {}, linkProgram() {},
@@ -124,9 +124,13 @@ webgl2.step(0);
 assert.ok(webgl2.gpuDrawCount() > 0, "WebGL2 sky pass renders a frame");
 const canvasOnly = boot("none");
 assert.equal(canvasOnly.elements.get("graphics").textContent, "CANVAS 2D ONLY");
+const shaderFailure = boot("webgl2", true);
+assert.equal(shaderFailure.elements.get("graphics").textContent, "CANVAS 2D ONLY");
+shaderFailure.step(0);
+assert.equal(shaderFailure.gpuDrawCount(), 0, "shader compilation failure falls back to Canvas 2D");
 
 console.log("PASS: inline script parses");
-console.log("PASS: WebGL2 and WebGL1 GPU sky passes render; Canvas-only fallback is retained");
+console.log("PASS: WebGL2 and WebGL1 GPU sky passes render; Canvas-only and shader-failure fallbacks are retained");
 console.log("PASS: 30 seconds of mocked animation frames run without runtime errors");
 console.log("PASS: autonomous herd, rex and brach activity states are exposed");
 console.log("PASS: day/night, rain, pause/resume and camera controls respond");

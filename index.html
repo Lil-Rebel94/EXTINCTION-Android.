@@ -47,7 +47,7 @@ const clouds=Array.from({length:11},(_,i)=>({x:seeded(i+1)*1.35-.15,y:.10+seeded
 const trees=Array.from({length:115},(_,i)=>({x:seeded(i+101),y:.48+seeded(i+211)*.22,s:.45+seeded(i+307)*.9,kind:seeded(i+401)}));
 const herd=Array.from({length:9},(_,i)=>({x:.32+i*.027,homeX:.32+i*.027,y:.684+seeded(i+501)*.025,phase:seeded(i+601)*6.28,s:.52+seeded(i+701)*.18,dir:i%2?1:-1,speed:.004+seeded(i+721)*.004,seed:i+1501,transitions:0,mode:"forage",modeTime:6+seeded(i+1601)*6,gait:0,browse:1}));
 const drops=Array.from({length:190},(_,i)=>({x:seeded(i+801),y:seeded(i+901),speed:.5+seeded(i+1001)*.8}));
-const rex={x:.72,homeX:.72,phase:0,seed:2501,transitions:0,mode:"patrol",modeTime:8,gait:1,browse:0,dir:1,speed:.0065};
+const rex={x:.72,homeX:.72,phase:0,seed:2501,transitions:0,mode:"patrol",modeTime:8,gait:1,browse:0,dir:1,speed:.0065,huntCooldown:0};
 const brach={x:.19,homeX:.19,phase:0,seed:3501,transitions:0,mode:"browse",modeTime:11,gait:.04,browse:1,dir:1,speed:.003};
 function resize(){scale=Math.min(window.devicePixelRatio||1,1.75);width=innerWidth;height=innerHeight;canvas.width=Math.max(1,Math.floor(width*scale));canvas.height=Math.max(1,Math.floor(height*scale));ctx.setTransform(scale,0,0,scale,0,0);}
 window.addEventListener("resize",resize,{passive:true});resize();
@@ -76,26 +76,48 @@ function chooseNextActivity(actor,role){
 function updateActor(actor,dt,role){
  actor.modeTime-=dt;
  if(actor.modeTime<=0)chooseNextActivity(actor,role);
- const moving=actor.mode==="walk"||actor.mode==="patrol";
+ const fleeing=actor.mode==="flee";
+ const pursuing=actor.mode==="stalk"||actor.mode==="hunt";
+ const moving=actor.mode==="walk"||actor.mode==="patrol"||fleeing||pursuing;
  const targetGait=moving?1:((actor.mode==="alert"||actor.mode==="scan") ? .16 : 0);
  const targetBrowse=(actor.mode==="forage"||actor.mode==="browse") ? 1 : 0;
  actor.gait=mix(actor.gait,targetGait,dt*2.4);
  actor.browse=mix(actor.browse,targetBrowse,dt*2.1);
  actor.phase+=dt*(moving?1.8:.42);
  if(moving){
-  actor.x+=actor.dir*actor.speed*dt;
-  const radius=role==="herd" ? .035 : .075;
+  const speedFactor=fleeing?2.7:pursuing?1.35:1;
+  actor.x+=actor.dir*actor.speed*speedFactor*dt;
+  const radius=role==="herd"?(fleeing?.12:.035):(pursuing?.24:.075);
   if(actor.x<actor.homeX-radius){actor.x=actor.homeX-radius;actor.dir=1;}
   if(actor.x>actor.homeX+radius){actor.x=actor.homeX+radius;actor.dir=-1;}
  }
 }
 function updateEcosystem(dt){
+ const target=herd.reduce((best,actor)=>!best||Math.abs(actor.x-rex.x)<Math.abs(best.x-rex.x)?actor:best,null);
+ const distance=target?Math.abs(target.x-rex.x):1;
+ rex.huntCooldown=Math.max(0,(rex.huntCooldown||0)-dt);
+ if(target&&rex.huntCooldown<=0){
+  if(rex.mode==="stalk"||rex.mode==="hunt"){
+   rex.dir=target.x>=rex.x?1:-1;
+   if(distance<.105&&rex.mode!=="hunt"){
+    rex.mode="hunt";rex.modeTime=2.2;rex.huntCooldown=18;
+    target.mode="flee";target.modeTime=4.5;target.dir=target.x>=rex.x?1:-1;
+   }
+  }else if(distance<.20){
+   rex.mode="stalk";rex.modeTime=8;rex.dir=target.x>=rex.x?1:-1;
+   herd.forEach(actor=>{
+    if(Math.abs(actor.x-rex.x)<.15&&actor.mode!=="flee"){
+     actor.mode="alert";actor.modeTime=Math.max(actor.modeTime,2.5);
+    }
+   });
+  }
+ }
  herd.forEach(actor=>updateActor(actor,dt,"herd"));
  updateActor(rex,dt,"rex");
  updateActor(brach,dt,"brach");
 }
 function activityName(mode){
- const names={forage:"FORAGING",walk:"MOVING",alert:"ALERT",rest:"RESTING",patrol:"PATROLLING",scan:"SCANNING",browse:"BROWSING"};
+ const names={forage:"FORAGING",walk:"MOVING",alert:"ALERT",rest:"RESTING",patrol:"PATROLLING",scan:"SCANNING",browse:"BROWSING",stalk:"STALKING",hunt:"HUNTING",flee:"FLEEING"};
  return names[mode]||mode.toUpperCase();
 }
 function updateStatus(){

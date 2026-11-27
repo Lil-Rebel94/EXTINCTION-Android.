@@ -71,7 +71,7 @@ function boot(webglMode, failShader = false) {
     devicePixelRatio: 1,
     addEventListener(type, callback) { handlers.set("window:" + type, callback); }
   };
-  const testSource = source.replace("updateStatus();\nrequestAnimationFrame(tick);", "updateStatus();\nwindow.__terrariumDebug = { herd, rex, brach, updateEcosystem };\nrequestAnimationFrame(tick);");
+  const testSource = source.replace("updateStatus();\nrequestAnimationFrame(tick);", "updateStatus();\nwindow.__terrariumDebug = { herd, rex, brach, feedingPatches, updateEcosystem };\nrequestAnimationFrame(tick);");
   const sandbox = {
     window: windowStub,
     document,
@@ -145,9 +145,37 @@ assert.equal(actors.rex.mode, "hunt", "T. rex enters hunt state at close range")
 assert.equal(prey.mode, "flee", "targeted herd animal flees a close predator");
 assert.ok(prey.x < 0.61, "fleeing animal moves away from predator");
 
+
+const feeding = boot("webgl2");
+const ecosystem = feeding.debug;
+ecosystem.rex.x = ecosystem.rex.homeX = 0.96;
+ecosystem.herd.forEach((actor,index)=>{actor.x=actor.homeX=0.32+index*0.027;});
+ecosystem.brach.x=ecosystem.brach.homeX=ecosystem.feedingPatches[0].x;
+ecosystem.brach.mode="browse";
+ecosystem.brach.modeTime=10;
+ecosystem.brach.feedTarget=0;
+const foodBefore=ecosystem.feedingPatches[0].biomass;
+ecosystem.updateEcosystem(1);
+assert.equal(ecosystem.brach.mode,"feed","Brachiosaurus settles into a feeding patch");
+assert.ok(ecosystem.feedingPatches[0].biomass<foodBefore,"feeding consumes patch biomass");
+ecosystem.brach.mode="walk";
+ecosystem.brach.modeTime=10;
+const regrowthBefore=ecosystem.feedingPatches[0].biomass;
+ecosystem.updateEcosystem(1);
+assert.ok(ecosystem.feedingPatches[0].biomass>regrowthBefore,"unused vegetation regrows");
+const grazer=ecosystem.herd[0];
+grazer.x=grazer.homeX=0.32;
+grazer.mode="forage";
+grazer.modeTime=10;
+grazer.feedTarget=-1;
+const grazerStart=grazer.x;
+ecosystem.updateEcosystem(1);
+assert.ok(grazer.x<grazerStart,"herd member moves toward a nearby food patch");
+
 console.log("PASS: inline script parses");
 console.log("PASS: WebGL2 and WebGL1 GPU sky passes render; Canvas-only and shader-failure fallbacks are retained");
 console.log("PASS: 30 seconds of mocked animation frames run without runtime errors");
 console.log("PASS: autonomous herd, rex and brach activity states are exposed");
 console.log("PASS: predator stalking escalates to a chase and prey flees");
+console.log("PASS: herbivores seek, consume and regrow procedural vegetation");
 console.log("PASS: day/night, rain, pause/resume and camera controls respond");

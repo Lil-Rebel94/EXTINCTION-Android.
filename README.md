@@ -2,7 +2,7 @@
 
 A code-first, ambient dinosaur-island project. This repository is the working home for Jurassic Terrarium.
 
-## v0.7.0 — predator-prey behaviour and GPU-rendered sky
+## v0.8.0 — herbivore feeding and vegetation regrowth
 
 Open **[index.html](./index.html)** in a modern browser. The page is self-contained and uses the browser's built-in Canvas 2D and optional WebGL APIs. It loads no external libraries, assets, fonts, APIs, or paid services.
 
@@ -12,6 +12,7 @@ Open **[index.html](./index.html)** in a modern browser. The page is self-contai
 - Animated stylized Tyrannosaurus, Brachiosaurus, and Gallimimus-like herd.
 - Deterministic per-animal activity state machines: herd foraging, walking, alert pauses, fleeing and rest; T. rex patrol, scan, stalking, close-range pursuit and rest; Brachiosaurus browsing, walking and rest.
 - Predator response: the herd raises alerts when the T. rex approaches; it can stalk a nearby animal, trigger a short pursuit, and cause the target to flee, with a cooldown to prevent constant re-triggering.
+- Six procedural feeding patches support herbivore target selection, approach movement, feeding/consumption, head-lowering poses, and gradual vegetation regrowth.
 - Smooth gait/browse blending, bounded roaming around each animal's home range, and a live behaviour readout.
 - Optional WebGL2/WebGL1 shader-rendered sky gradient, composited into the Canvas 2D scene; shader setup failures retain the Canvas 2D fallback.
 - Day/night toggle, tropical-rain toggle, pause/resume, camera-view shift, and keyboard shortcuts (**Space**, **N**, **R**).
@@ -37,7 +38,7 @@ The test checks inline-script parsing, WebGL2/WebGL1/Canvas-only paths, shader-f
 
 ### Important limits
 
-This is an **early playable visual prototype**, not the promised photorealistic terrarium. Dinosaur bodies are simplified procedural silhouettes, not finished anatomical meshes or rigs. The animals now have deterministic ambient activity states and bounded roaming, but feeding, successful predation, herd cohesion/social interactions, territory, persistent state, and sound are not implemented. The current predator system models stalking and fleeing only; it does not simulate kills or feeding. The scene remains a hybrid renderer: the sky gradient uses an optional WebGL2/WebGL1 shader pass, while landscape, structures, weather, and dinosaur silhouettes remain Canvas 2D. This is not a 3D dinosaur renderer or evidence of TV compatibility.
+This is an **early playable visual prototype**, not the promised photorealistic terrarium. Dinosaur bodies are simplified procedural silhouettes, not finished anatomical meshes or rigs. The animals now have deterministic ambient activity states and bounded roaming. Herbivores can seek nearby food patches, feed, lower their heads, and consume vegetation that gradually regrows. Successful predation, herd cohesion/social interactions, territory, persistent state, and sound are not implemented. The current predator system models stalking and fleeing only; it does not simulate kills or feeding. The scene remains a hybrid renderer: the sky gradient uses an optional WebGL2/WebGL1 shader pass, while landscape, structures, weather, and dinosaur silhouettes remain Canvas 2D. This is not a 3D dinosaur renderer or evidence of TV compatibility.
 
 The Samsung UN85TU7000FXZA browser has **not** been tested. Samsung's published 2020 TV web-engine baseline is Tizen 5.5 / Chromium M69; its documentation lists WebGL generally but does not establish WebGL2 for this target. Samsung's general specification lists 1920×1080 application resolution even on 4K models. See [TV compatibility notes](./docs/TV_COMPATIBILITY.md). Actual resolution, frame rate, remote-control navigation, sleep/wake behaviour, and long-duration stability remain unverified. Do not treat this prototype as a 4K/60–120 FPS or TV-validated build.
 
@@ -55,3 +56,6 @@ The Samsung UN85TU7000FXZA browser has **not** been tested. Samsung's published 
 - **v0.3.0** — runtime WebGL2/WebGL1 capability detection with explicit Canvas 2D fallback.
 - **v0.4.0** — first active GPU-rendered pass: shader-based day/night sky gradient on WebGL2 or WebGL1, with Canvas 2D fallback.
 - **v0.5.0** — predator-prey encounter states: T. rex stalking and short pursuit, herd alerting, targeted fleeing, and pursuit cooldown.
+- **v0.6.0** — first procedural low-poly T. rex mesh.
+- **v0.7.0** — procedural low-poly mesh renderer extended to the sauropod and herd groups.
+- **v0.8.0** — herbivores seek, approach and feed from six procedural vegetation patches; biomass is consumed and regrows, with visible head-lowering poses.

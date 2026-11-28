@@ -4,6 +4,8 @@ A code-first, ambient dinosaur-island project. This repository is the working ho
 
 ## v0.9.0 — browser visual QA harness
 
+The film roster has also been researched into a working baseline: **15 confirmed living dinosaur taxa across the trilogy, plus Pteranodon as a separate flying reptile**. Brief/background animals, prop-only references, and uncertain candidates are separated in [docs/SPECIES_ROSTER.md](./docs/SPECIES_ROSTER.md).
+
 The standalone scene now exposes a read-only diagnostic snapshot at `window.__JURASSIC_TERRARIUM__` (render-frame count, canvas dimensions, selected renderer path, animal activity states, food patch count, control state, and captured runtime errors). A dependency-free browser test page at **[tests/browser-visual.html](./tests/browser-visual.html)** loads the scene in an iframe, samples the rendered canvas for nonblank visual output, checks animation progress and runtime errors, and exercises day/night, rain, pause and resume.
 
 Run the browser check from the repository root with a local static server:

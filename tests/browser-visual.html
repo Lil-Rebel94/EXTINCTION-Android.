@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jurassic Terrarium — Browser Visual Smoke Test</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101a17;color:#e8eee4;font:14px/1.5 system-ui,sans-serif;padding:18px}
+h1{font-size:20px;margin:0 0 5px}p{color:#b7c5b8;margin:0 0 14px}
+iframe{display:block;width:100%;height:min(68vh,760px);border:1px solid #536b5a;border-radius:8px;background:#071714}
+pre{white-space:pre-wrap;background:#07120f;border:1px solid #344c3d;border-radius:8px;padding:12px;min-height:100px}
+.pass{color:#9ee3a9}.fail{color:#ff9c8d}.note{color:#c9d5c7}
+</style>
+</head>
+<body>
+<h1>Jurassic Terrarium — browser visual smoke test</h1>
+<p>Loads the standalone scene in a real browser, samples rendered pixels, checks frame progression, and exercises the ambient controls.</p>
+<iframe id="scene" src="../index.html?qa=1" title="Jurassic Terrarium test scene"></iframe>
+<pre id="results" class="note">Waiting for the scene to load…</pre>
+<script>
+(function(){
+"use strict";
+const frame=document.getElementById("scene");
+const output=document.getElementById("results");
+const results=[];
+function check(name,passed,detail){
+ results.push({name,passed,detail:detail||""});
+ output.textContent=results.map(r=>(r.passed?"PASS  ":"FAIL  ")+r.name+(r.detail?" — "+r.detail:"")).join("\n");
+ output.className=results.some(r=>!r.passed)?"fail":"pass";
+}
+function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+async function run(){
+ try{
+  await new Promise((resolve,reject)=>{
+   const timeout=setTimeout(()=>reject(new Error("Scene iframe did not load within 12 seconds")),12000);
+   frame.addEventListener("load",()=>{clearTimeout(timeout);resolve();},{once:true});
+  });
+  await wait(1400);
+  const win=frame.contentWindow;
+  const api=win.__JURASSIC_TERRARIUM__;
+  check("QA interface is exposed",!!api,api?"v"+api.version:"missing");
+  if(!api)return;
+  let snapshot=api.getSnapshot();
+  check("Animation frames are advancing",snapshot.renderedFrames>=30,snapshot.renderedFrames+" frames");
+  check("Canvas has a usable backing size",snapshot.backingWidth>=320&&snapshot.backingHeight>=200,snapshot.backingWidth+"×"+snapshot.backingHeight);
+  check("Renderer reports a supported path",/^(WEBGL2 ACTIVE|WEBGL1 ACTIVE|CANVAS 2D ONLY)/.test(snapshot.graphics),snapshot.graphics);
+  check("Expected prototype population exists",snapshot.herdCount===9&&snapshot.foodPatchCount===6,"9 herd / 1 T. rex / 1 Brachiosaurus / 6 food patches");
+  const canvas=api.canvas;
+  const context=canvas.getContext("2d",{willReadFrequently:true});
+  const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;
+  const colors=new Set();
+  let min=255,max=0;
+  for(let gy=0;gy<10;gy++)for(let gx=0;gx<18;gx++){
+   const x=Math.min(canvas.width-1,Math.floor((gx+.5)*canvas.width/18));
+   const y=Math.min(canvas.height-1,Math.floor((gy+.5)*canvas.height/10));
+   const i=(y*canvas.width+x)*4;
+   const r=pixels[i],g=pixels[i+1],b=pixels[i+2];
+   colors.add(r+","+g+","+b);
+   const l=Math.round(.2126*r+.7152*g+.0722*b);
+   min=Math.min(min,l);max=Math.max(max,l);
+  }
+  check("Rendered canvas is not blank",colors.size>24&&max-min>24,colors.size+" sampled colors; luminance range "+(max-min));
+  check("No captured runtime errors",snapshot.errors.length===0,snapshot.errors.join("; ")||"none");
+  api.controls.night.click();
+  check("Day/night control changes state",api.getSnapshot().isNight===true);
+  api.controls.rain.click();
+  check("Rain control changes state",api.getSnapshot().isRaining===true);
+  api.controls.pause.click();
+  const before=api.getSnapshot();
+  await wait(180);
+  const after=api.getSnapshot();
+  check("Pause freezes simulation without stopping rendering",after.paused&&after.renderedFrames>before.renderedFrames,after.renderedFrames+" rendered frames");
+  api.controls.pause.click();
+  check("Resume restores simulation",api.getSnapshot().paused===false);
+  snapshot=api.getSnapshot();
+  check("No runtime errors after control tests",snapshot.errors.length===0,snapshot.errors.join("; ")||"none");
+  const failures=results.filter(r=>!r.passed).length;
+  const summary=document.createElement("div");
+  summary.textContent=failures?"\n"+failures+" check(s) failed.":"\nAll browser visual smoke checks passed.";
+  output.appendChild(summary);
+ }catch(error){
+  check("Browser test completed",false,String(error&&error.message||error));
+ }
+}
+run();
+})();
+</script>
+</body>
+</html>

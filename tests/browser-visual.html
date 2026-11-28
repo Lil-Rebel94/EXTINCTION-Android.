@@ -32,8 +32,11 @@ function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 async function run(){
  try{
   await new Promise((resolve,reject)=>{
-   const timeout=setTimeout(()=>reject(new Error("Scene iframe did not load within 12 seconds")),12000);
-   frame.addEventListener("load",()=>{clearTimeout(timeout);resolve();},{once:true});
+   let settled=false;
+   const finish=()=>{if(settled)return;settled=true;clearTimeout(timeout);resolve();};
+   const timeout=setTimeout(()=>{if(!settled){settled=true;reject(new Error("Scene iframe did not load within 12 seconds"));}},12000);
+   frame.addEventListener("load",finish,{once:true});
+   try{if(frame.contentDocument&&frame.contentDocument.readyState==="complete"&&frame.contentWindow.location.href!=="about:blank")finish();}catch(error){}
   });
   await wait(1400);
   const win=frame.contentWindow;

@@ -155,7 +155,7 @@ function updateStatus(){
  const counts={};
  herd.forEach(actor=>{counts[actor.mode]=(counts[actor.mode]||0)+1;});
  const herdMode=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]||"forage";
- $("status").textContent="HERD "+activityName(herdMode)+" · REX "+activityName(rex.mode)+" · BRACH "+activityName(brach.mode);
+ $("status").textContent="v0.9.0 · HERD "+activityName(herdMode)+" · REX "+activityName(rex.mode)+" · BRACH "+activityName(brach.mode);
 }
 function createGpuBackground(){
  const fallback={label:"CANVAS 2D ONLY",render:()=>false};

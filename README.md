@@ -2,6 +2,18 @@
 
 A code-first, ambient dinosaur-island project. This repository is the working home for Jurassic Terrarium.
 
+## v0.9.0 — browser visual QA harness
+
+The standalone scene now exposes a read-only diagnostic snapshot at `window.__JURASSIC_TERRARIUM__` (render-frame count, canvas dimensions, selected renderer path, animal activity states, food patch count, control state, and captured runtime errors). A dependency-free browser test page at **[tests/browser-visual.html](./tests/browser-visual.html)** loads the scene in an iframe, samples the rendered canvas for nonblank visual output, checks animation progress and runtime errors, and exercises day/night, rain, pause and resume.
+
+Run the browser check from the repository root with a local static server:
+
+```sh
+python3 -m http.server 8000
+```
+
+Then open `http://localhost:8000/tests/browser-visual.html`. The page reports each check in the browser; it requires no packages, external assets, or network APIs. The Node mocked-runtime test remains available separately.
+
 ## v0.8.0 — herbivore feeding and vegetation regrowth
 
 Open **[index.html](./index.html)** in a modern browser. The page is self-contained and uses the browser's built-in Canvas 2D and optional WebGL APIs. It loads no external libraries, assets, fonts, APIs, or paid services.
@@ -59,3 +71,4 @@ The Samsung UN85TU7000FXZA browser has **not** been tested. Samsung's published 
 - **v0.6.0** — first procedural low-poly T. rex mesh.
 - **v0.7.0** — procedural low-poly mesh renderer extended to the sauropod and herd groups.
 - **v0.8.0** — herbivores seek, approach and feed from six procedural vegetation patches; biomass is consumed and regrows, with visible head-lowering poses.
+- **v0.9.0** — read-only runtime diagnostics and a dependency-free browser visual smoke-test page for actual canvas pixels, frame progression, runtime errors, and ambient controls.

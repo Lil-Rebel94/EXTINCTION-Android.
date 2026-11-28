@@ -87,7 +87,7 @@ The three films yield **15 distinct dinosaur taxa** for the living ecosystem:
 - The *Jurassic Park* Dilophosaurus frill and venom-spitting are film inventions, not established paleontology. They may be retained as explicit franchise behaviour, not presented as scientific fact.
 - Pteranodon is a pterosaur, not a dinosaur.
 - Alamosaurus is a visitor-center skeleton in the first film, not a confirmed living animal.
-- Baryonyx and Suchomimus are discussed as concepts/references during *Jurassic Park III* development, but are not in the released film's on-screen creature list. Do not add them to the living roster.
+- Baryonyx was considered during *Jurassic Park III* development as an alternative to Spinosaurus; neither Baryonyx nor Suchomimus appears in the released film's on-screen creature list. Do not add them to the living roster.
 - Do not promote species names from embryo labels, park maps, merchandise, cut scenes, novels, or fan-maintained prop lists into the living roster without direct frame/production evidence. Any additional background silhouettes remain **unresolved**, not confirmed species.
 
 ## Implementation priority

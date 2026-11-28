@@ -85,6 +85,7 @@ function boot(webglMode, failShader = false) {
   vm.runInNewContext(testSource, sandbox, { timeout: 2000 });
   return {
     handlers, elements, frameQueue, debug: windowStub.__terrariumDebug,
+    qa: windowStub.__JURASSIC_TERRARIUM__,
     gpuDrawCount: () => gpuDrawCount,
     step(timestamp) {
       const callback = frameQueue.shift();
@@ -99,6 +100,13 @@ assert.equal(runtime.elements.get("graphics").textContent, "WEBGL1 ACTIVE · GPU
 runtime.step(0);
 for (let i = 1; i <= 600; i++) runtime.step(i * 50);
 
+assert.ok(runtime.qa, "browser QA interface is exposed");
+assert.equal(runtime.qa.version, "0.9.0");
+assert.equal(runtime.qa.getSnapshot().herdCount, 9);
+assert.equal(runtime.qa.getSnapshot().foodPatchCount, 6);
+assert.equal(runtime.qa.getSnapshot().renderedFrames, 601);
+assert.deepEqual(Array.from(runtime.qa.getSnapshot().errors), []);
+
 const status = runtime.elements.get("status").textContent;
 assert.ok(status.startsWith("HERD "), "herd activity is visible");
 assert.ok(status.includes(" · REX "), "T. rex activity is visible");
@@ -107,10 +115,13 @@ assert.ok(runtime.gpuDrawCount() > 0, "WebGL sky pass renders frames");
 
 runtime.elements.get("cycle").click();
 assert.ok(runtime.elements.get("clock").textContent.includes("NIGHT"), "night control responds");
+assert.equal(runtime.qa.getSnapshot().isNight, true, "QA snapshot reflects night mode");
 runtime.elements.get("storm").click();
 assert.equal(runtime.elements.get("weather").textContent, "TROPICAL RAIN");
+assert.equal(runtime.qa.getSnapshot().isRaining, true, "QA snapshot reflects rain mode");
 runtime.elements.get("pause").click();
 assert.equal(runtime.elements.get("pause").textContent, "Resume");
+assert.equal(runtime.qa.getSnapshot().paused, true, "QA snapshot reflects paused state");
 const frozenStatus = runtime.elements.get("status").textContent;
 for (let i = 601; i <= 620; i++) runtime.step(i * 50);
 assert.equal(runtime.elements.get("status").textContent, frozenStatus, "paused simulation status stays frozen");

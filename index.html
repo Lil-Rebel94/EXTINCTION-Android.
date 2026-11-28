@@ -39,7 +39,9 @@ const canvas=document.getElementById("world");
 const ctx=canvas.getContext("2d",{alpha:false});
 if(!ctx){document.getElementById("bottom").textContent="This browser does not support the required 2D canvas.";return;}
 const $=id=>document.getElementById(id);
-let width=0,height=0,scale=1,last=0,elapsed=0,paused=false,isNight=false,isRaining=false,camera=0;
+let width=0,height=0,scale=1,last=0,elapsed=0,paused=false,isNight=false,isRaining=false,camera=0,renderedFrames=0;
+const qaErrors=[];
+window.addEventListener("error",event=>{if(qaErrors.length<20)qaErrors.push(String(event.message||"Unknown runtime error"));},true);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const mix=(a,b,t)=>a+(b-a)*t;
 const seeded=(n)=>{let x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);};
@@ -429,7 +431,7 @@ function tick(now){
   statusClock+=dt;
   if(statusClock>=1){statusClock=0;updateStatus();}
  }
- render();requestAnimationFrame(tick);
+ render();renderedFrames++;requestAnimationFrame(tick);
 }
 updateStatus();
 requestAnimationFrame(tick);
@@ -438,6 +440,12 @@ $("storm").addEventListener("click",()=>{isRaining=!isRaining;$("storm").textCon
 $("pause").addEventListener("click",()=>{paused=!paused;$("pause").textContent=paused?"Resume":"Pause";});
 canvas.addEventListener("pointerdown",()=>{camera=(camera+1)%3;canvas.style.transform="scale("+(camera===1?"1.018":camera===2?"1.035":"1")+")";});
 window.addEventListener("keydown",e=>{if(e.key===" "){e.preventDefault();$("pause").click();}if(e.key.toLowerCase()==="n")$("cycle").click();if(e.key.toLowerCase()==="r")$("storm").click();});
+window.__JURASSIC_TERRARIUM__=Object.freeze({
+ version:"0.9.0",
+ canvas,
+ controls:Object.freeze({night:$("cycle"),rain:$("storm"),pause:$("pause")}),
+ getSnapshot(){return {version:"0.9.0",renderedFrames,width,height,backingWidth:canvas.width,backingHeight:canvas.height,graphics:gpuBackground.label,paused,isNight,isRaining,herdCount:herd.length,herdModes:herd.map(actor=>actor.mode),rexMode:rex.mode,brachMode:brach.mode,foodPatchCount:feedingPatches.length,foodBiomass:feedingPatches.map(patch=>patch.biomass),errors:qaErrors.slice()};}
+});
 })();
 </script>
 </body>

@@ -1,10 +1,11 @@
 # Jurassic Terrarium checkpoint
 
-- **Current version:** v0.8.0
+- **Current version:** v0.9.0
 - **Target:** Samsung UN85TU7000FXZA; physical TV playback remains unverified.
-- **Files changed:** `index.html`, `tests/behavior-smoke.mjs`, `README.md`.
-- **Milestone:** Six procedural food patches now support herbivore target selection, approach movement, feeding, vegetation consumption and regrowth. Feeding state is visible in the behavior readout; herd and Brachiosaurus head poses lower while feeding.
-- **Tests added:** Brachiosaurus feeding reduces patch biomass; unused vegetation regrows; a herd animal moves toward a nearby patch. Existing mocked WebGL2/WebGL1/Canvas fallback, predator encounter and control tests are retained.
-- **Validation:** Inline application script and smoke-test source both parse. A custom V8 mocked-browser run passed 601 WebGL1 animation frames, a WebGL2 draw, Canvas-only fallback, shader-failure fallback, predator pursuit/fleeing, herbivore food seeking, biomass consumption, and regrowth. The Node CLI test and real browser/GPU rendering were not executed in this run.
-- **Known limitations:** Dinosaur geometry remains low-poly procedural ellipsoids projected through Canvas 2D, not a true 3D/WebGL mesh renderer or finished skeletal rig. No kills/carcass feeding, social cohesion, territory, persistent world state, audio, full film species roster, or TV validation yet.
-- **Next task:** Add a real browser-executable render/visual regression path and verify procedural mesh appearance before expanding species or complexity.
+- **Files changed:** `index.html`, `tests/behavior-smoke.mjs`, new `tests/browser-visual.html`, `README.md`, `CHECKPOINT.md`.
+- **Milestone:** Added a read-only `window.__JURASSIC_TERRARIUM__` QA interface exposing render-frame count, canvas dimensions, renderer path, animal activity states, feeding patch count, control state and captured runtime errors. Added a dependency-free browser visual smoke-test page that embeds the actual scene, samples rendered canvas pixels for nonblank output, checks animation progress and runtime errors, and exercises day/night, rain, pause and resume.
+- **How to run browser test:** From the repository root run `python3 -m http.server 8000`, then open `http://localhost:8000/tests/browser-visual.html`. No package install or external service is required.
+- **Tests updated:** Node mocked-runtime smoke test now checks the QA API, 601 rendered frames in the simulated run, animal/food counts, diagnostic error list, and state snapshots after controls.
+- **Validation in this run:** Retrieved and inspected the current `index.html`, test, README, and TV compatibility notes from the default branch before editing. GitHub accepted the source, test, browser harness, README and checkpoint updates. A local real-browser execution was **not** possible in this run: the execution container cannot resolve `github.com`, so the current repository source could not be checked out into the local Chromium environment. No actual Chromium screenshot, pixel sample, GPU test or TV test is claimed.
+- **Known limitations:** The scene remains a hybrid Canvas 2D/WebGL-sky prototype. Dinosaur geometry is still low-poly ellipsoid parts projected through Canvas 2D, not true 3D WebGL meshes or finished skeletal rigs. No kills/carcass feeding, social cohesion, territory, persistent world state, audio, verified film species roster, or TV validation yet.
+- **Next task:** Execute the new browser visual smoke test against the actual scene in a local browser, resolve any real-render defects, and use the captured baseline to guide the first genuine GPU dinosaur mesh.

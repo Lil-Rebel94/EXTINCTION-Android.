@@ -108,7 +108,7 @@ assert.equal(runtime.qa.getSnapshot().renderedFrames, 601);
 assert.deepEqual(Array.from(runtime.qa.getSnapshot().errors), []);
 
 const status = runtime.elements.get("status").textContent;
-assert.ok(status.startsWith("HERD "), "herd activity is visible");
+assert.ok(status.includes("v0.9.0") && status.includes("HERD "), "version and herd activity are visible");
 assert.ok(status.includes(" · REX "), "T. rex activity is visible");
 assert.ok(status.includes(" · BRACH "), "Brachiosaurus activity is visible");
 assert.ok(runtime.gpuDrawCount() > 0, "WebGL sky pass renders frames");
